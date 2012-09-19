@@ -76,6 +76,26 @@ The *replace IP with domain name* normalization (`http://208.77.188.166/ → htt
 
 The *remove unused query string parameters* and *remove default query parameters* are also not implemented, since this is a very case-specific normalization, and it is quite trivial to do with an URL object.
 
+### Safe vs Usually Safe vs Unsafe
+
+Purell allows you to control the level of risk you take while normalizing an URL. You can aggressively normalize, play it totally safe, or anything in between.
+
+Consider the following URL:
+
+`HTTPS://www.RooT.com/toto/t%45%1f///a/./b/../c/?z=3&w=2&a=4&w=1#invalid`
+
+Normalizing with the FlagsSafe gives:
+
+`https://www.root.com/toto/tE%1F///a/./b/../c/?z=3&w=2&a=4&w=1#invalid`
+
+With the FlagsUsuallySafe:
+
+`https://www.root.com/toto/tE%1F///a/c?z=3&w=2&a=4&w=1#invalid`
+
+And with FlagsUnsafe:
+
+`http://root.com/toto/tE%1F/a/c?a=4&w=1&w=2&z=3`
+
 ## TODOs
 
 *    What if the source URL does not encode invalid characters? Parsing the string in a URL type automatically encodes some of them, though not all, it would seem. We'll see if it requires a normalization method.

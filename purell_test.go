@@ -251,25 +251,25 @@ func TestRemoveEmptyQuerySeparator(t *testing.T) {
 }
 
 func TestUnsafe(t *testing.T) {
-	if s, e := NormalizeUrlString("HTTPS://RooT/toto/t%45%1f///a/./b/../c/?z=3&w=2&a=4&w=1#invalid", FlagsUnsafe); e != nil {
+	if s, e := NormalizeUrlString("HTTPS://www.RooT.com/toto/t%45%1f///a/./b/../c/?z=3&w=2&a=4&w=1#invalid", FlagsUnsafe); e != nil {
 		t.Errorf("Got error %s", e.Error())
 	} else {
-		assertResult("http://root/toto/tE%1F/a/c?a=4&w=1&w=2&z=3", s, t)
+		assertResult("http://root.com/toto/tE%1F/a/c?a=4&w=1&w=2&z=3", s, t)
 	}
 }
 
 func TestSafe2(t *testing.T) {
-	if s, e := NormalizeUrlString("HTTPS://RooT/toto/t%45%1f///a/./b/../c/?z=3&w=2&a=4&w=1#invalid", FlagsSafe); e != nil {
+	if s, e := NormalizeUrlString("HTTPS://www.RooT.com/toto/t%45%1f///a/./b/../c/?z=3&w=2&a=4&w=1#invalid", FlagsSafe); e != nil {
 		t.Errorf("Got error %s", e.Error())
 	} else {
-		assertResult("https://root/toto/tE%1F///a/./b/../c/?z=3&w=2&a=4&w=1#invalid", s, t)
+		assertResult("https://www.root.com/toto/tE%1F///a/./b/../c/?z=3&w=2&a=4&w=1#invalid", s, t)
 	}
 }
 
 func TestUsuallySafe2(t *testing.T) {
-	if s, e := NormalizeUrlString("HTTPS://RooT/toto/t%45%1f///a/./b/../c/?z=3&w=2&a=4&w=1#invalid", FlagsUsuallySafe); e != nil {
+	if s, e := NormalizeUrlString("HTTPS://www.RooT.com/toto/t%45%1f///a/./b/../c/?z=3&w=2&a=4&w=1#invalid", FlagsUsuallySafe); e != nil {
 		t.Errorf("Got error %s", e.Error())
 	} else {
-		assertResult("https://root/toto/tE%1F///a/c?z=3&w=2&a=4&w=1#invalid", s, t)
+		assertResult("https://www.root.com/toto/tE%1F///a/c?z=3&w=2&a=4&w=1#invalid", s, t)
 	}
 }
