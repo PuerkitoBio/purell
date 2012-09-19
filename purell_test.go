@@ -155,10 +155,10 @@ func TestRemoveDotSegments2(t *testing.T) {
 }
 
 func TestUsuallySafe(t *testing.T) {
-	if s, e := NormalizeUrlString("HTTP://www.SRC.ca:80/to%1ato%8b%ee/./c/d/../OKnow%41%42%43%7e/?a=b", FlagsUsuallySafe); e != nil {
+	if s, e := NormalizeUrlString("HTTP://www.SRC.ca:80/to%1ato%8b%ee/./c/d/../OKnow%41%42%43%7e/?a=b#test", FlagsUsuallySafe); e != nil {
 		t.Errorf("Got error %s", e.Error())
 	} else {
-		assertResult("http://www.src.ca/to%1Ato%8B%EE/c/OKnowABC~?a=b", s, t)
+		assertResult("http://www.src.ca/to%1Ato%8B%EE/c/OKnowABC~?a=b#test", s, t)
 	}
 }
 
@@ -171,9 +171,65 @@ func TestRemoveDirectoryIndex(t *testing.T) {
 }
 
 func TestRemoveDirectoryIndex2(t *testing.T) {
-	if s, e := NormalizeUrlString("HTTP://root/a/b/c/default", FlagRemoveDirectoryIndex); e != nil {
+	if s, e := NormalizeUrlString("HTTP://root/a/b/c/default#a=b", FlagRemoveDirectoryIndex); e != nil {
+		t.Errorf("Got error %s", e.Error())
+	} else {
+		assertResult("HTTP://root/a/b/c/default#a=b", s, t)
+	}
+}
+
+func TestRemoveFragment(t *testing.T) {
+	if s, e := NormalizeUrlString("HTTP://root/a/b/c/default#toto=tata", FlagRemoveFragment); e != nil {
 		t.Errorf("Got error %s", e.Error())
 	} else {
 		assertResult("HTTP://root/a/b/c/default", s, t)
+	}
+}
+
+func TestForceHttp(t *testing.T) {
+	if s, e := NormalizeUrlString("https://root/a/b/c/default#toto=tata", FlagForceHttp); e != nil {
+		t.Errorf("Got error %s", e.Error())
+	} else {
+		assertResult("http://root/a/b/c/default#toto=tata", s, t)
+	}
+}
+
+func TestRemoveDuplicateSlashes(t *testing.T) {
+	if s, e := NormalizeUrlString("https://root/a//b///c////default#toto=tata", FlagRemoveDuplicateSlashes); e != nil {
+		t.Errorf("Got error %s", e.Error())
+	} else {
+		assertResult("https://root/a/b/c/default#toto=tata", s, t)
+	}
+}
+
+func TestRemoveDuplicateSlashes2(t *testing.T) {
+	if s, e := NormalizeUrlString("https://root//a//b///c////default#toto=tata", FlagRemoveDuplicateSlashes); e != nil {
+		t.Errorf("Got error %s", e.Error())
+	} else {
+		assertResult("https://root/a/b/c/default#toto=tata", s, t)
+	}
+}
+
+func TestRemoveWww(t *testing.T) {
+	if s, e := NormalizeUrlString("https://www.root/a/b/c/", FlagRemoveWww); e != nil {
+		t.Errorf("Got error %s", e.Error())
+	} else {
+		assertResult("https://root/a/b/c/", s, t)
+	}
+}
+
+func TestRemoveWww2(t *testing.T) {
+	if s, e := NormalizeUrlString("https://WwW.Root/a/b/c/", FlagRemoveWww); e != nil {
+		t.Errorf("Got error %s", e.Error())
+	} else {
+		assertResult("https://Root/a/b/c/", s, t)
+	}
+}
+
+func TestAddWww(t *testing.T) {
+	if s, e := NormalizeUrlString("https://Root/a/b/c/", FlagAddWww); e != nil {
+		t.Errorf("Got error %s", e.Error())
+	} else {
+		assertResult("https://www.Root/a/b/c/", s, t)
 	}
 }

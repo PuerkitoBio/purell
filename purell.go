@@ -25,17 +25,23 @@ const (
 
 	// Unsafe normalizations
 	FlagRemoveDirectoryIndex
+	FlagRemoveFragment
+	FlagForceHttp
+	FlagRemoveDuplicateSlashes
+	// Should choose one or the other (in add-remove www)
+	FlagRemoveWww
+	FlagAddWww
 
 	FlagsSafe NormalizationFlags = FlagLowercaseHost | FlagLowercaseScheme | FlagUppercaseEscapes | FlagDecodeUnnecessaryEscapes | FlagRemoveDefaultPort
 
 	FlagsUsuallySafe NormalizationFlags = FlagsSafe | FlagRemoveTrailingSlash | FlagRemoveDotSegments
 
-	FlagsUnsafe NormalizationFlags = FlagsUsuallySafe | FlagRemoveDirectoryIndex
+	FlagsUnsafe NormalizationFlags = FlagsUsuallySafe | FlagRemoveDirectoryIndex | FlagRemoveFragment | FlagForceHttp | FlagRemoveDuplicateSlashes | FlagRemoveWww
 )
 
-//var rxEscape = regexp.MustCompile(`(%[0-9a-fA-F]{2})`)
 var rxPort = regexp.MustCompile(`(:\d+)/?$`)
 var rxDirIndex = regexp.MustCompile(`(^|/)((?:default|index)\.\w{1,4})$`)
+var rxDupSlashes = regexp.MustCompile(`/{2,}`)
 
 func MustNormalizeUrlString(u string, f NormalizationFlags) string {
 	if parsed, e := url.Parse(u); e != nil {
@@ -71,13 +77,18 @@ func NormalizeUrl(u *url.URL, f NormalizationFlags) (string, error) {
 	// FlagDecodeUnnecessaryEscapes has no action, since it is done automatically
 	// by parsing the string as an URL. Same for FlagUppercaseEscapes.
 	flags := map[NormalizationFlags]func(*url.URL) (*url.URL, error){
-		FlagLowercaseScheme:      lowercaseScheme,
-		FlagLowercaseHost:        lowercaseHost,
-		FlagRemoveDefaultPort:    removeDefaultPort,
-		FlagRemoveTrailingSlash:  removeTrailingSlash,
-		FlagRemoveDirectoryIndex: removeDirectoryIndex, // Must be before add trailing slash
-		FlagAddTrailingSlash:     addTrailingSlash,
-		FlagRemoveDotSegments:    removeDotSegments,
+		FlagLowercaseScheme:        lowercaseScheme,
+		FlagLowercaseHost:          lowercaseHost,
+		FlagRemoveDefaultPort:      removeDefaultPort,
+		FlagRemoveTrailingSlash:    removeTrailingSlash,
+		FlagRemoveDirectoryIndex:   removeDirectoryIndex, // Must be before add trailing slash
+		FlagAddTrailingSlash:       addTrailingSlash,
+		FlagRemoveDotSegments:      removeDotSegments,
+		FlagRemoveFragment:         removeFragment,
+		FlagForceHttp:              forceHttp,
+		FlagRemoveDuplicateSlashes: removeDuplicateSlashes,
+		FlagRemoveWww:              removeWww,
+		FlagAddWww:                 addWww,
 	}
 
 	for k, v := range flags {
@@ -105,12 +116,14 @@ func lowercaseHost(u *url.URL) (*url.URL, error) {
 }
 
 func removeDefaultPort(u *url.URL) (*url.URL, error) {
-	u.Host = rxPort.ReplaceAllStringFunc(u.Host, func(val string) string {
-		if val == ":80" {
-			return ""
-		}
-		return val
-	})
+	if len(u.Host) > 0 {
+		u.Host = rxPort.ReplaceAllStringFunc(u.Host, func(val string) string {
+			if val == ":80" {
+				return ""
+			}
+			return val
+		})
+	}
 	return u, nil
 }
 
@@ -135,26 +148,62 @@ func addTrailingSlash(u *url.URL) (*url.URL, error) {
 func removeDotSegments(u *url.URL) (*url.URL, error) {
 	var dotFree []string
 
-	sections := strings.Split(u.Path, "/")
-	for _, s := range sections {
-		if s == ".." {
-			if len(dotFree) > 0 {
-				dotFree = dotFree[:len(dotFree)-1]
+	if len(u.Path) > 0 {
+		sections := strings.Split(u.Path, "/")
+		for _, s := range sections {
+			if s == ".." {
+				if len(dotFree) > 0 {
+					dotFree = dotFree[:len(dotFree)-1]
+				}
+			} else if s != "." {
+				dotFree = append(dotFree, s)
 			}
-		} else if s != "." {
-			dotFree = append(dotFree, s)
+		}
+		// Special case if host does not end with / and new path does not begin with /
+		u.Path = strings.Join(dotFree, "/")
+		if !strings.HasSuffix(u.Host, "/") && !strings.HasPrefix(u.Path, "/") {
+			u.Path = "/" + u.Path
 		}
 	}
-	// Special case if host does not end with / and new path does not begin with /
-	u.Path = strings.Join(dotFree, "/")
-	if !strings.HasSuffix(u.Host, "/") && !strings.HasPrefix(u.Path, "/") {
-		u.Path = "/" + u.Path
-	}
-
 	return u, nil
 }
 
 func removeDirectoryIndex(u *url.URL) (*url.URL, error) {
-	u.Path = rxDirIndex.ReplaceAllString(u.Path, "$1")
+	if len(u.Path) > 0 {
+		u.Path = rxDirIndex.ReplaceAllString(u.Path, "$1")
+	}
+	return u, nil
+}
+
+func removeFragment(u *url.URL) (*url.URL, error) {
+	u.Fragment = ""
+	return u, nil
+}
+
+func forceHttp(u *url.URL) (*url.URL, error) {
+	if strings.ToLower(u.Scheme) == "https" {
+		u.Scheme = "http"
+	}
+	return u, nil
+}
+
+func removeDuplicateSlashes(u *url.URL) (*url.URL, error) {
+	if len(u.Path) > 0 {
+		u.Path = rxDupSlashes.ReplaceAllString(u.Path, "/")
+	}
+	return u, nil
+}
+
+func removeWww(u *url.URL) (*url.URL, error) {
+	if len(u.Host) > 0 && strings.HasPrefix(strings.ToLower(u.Host), "www.") {
+		u.Host = u.Host[4:]
+	}
+	return u, nil
+}
+
+func addWww(u *url.URL) (*url.URL, error) {
+	if len(u.Host) > 0 && !strings.HasPrefix(strings.ToLower(u.Host), "www.") {
+		u.Host = "www." + u.Host
+	}
 	return u, nil
 }
