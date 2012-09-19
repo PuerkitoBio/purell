@@ -9,6 +9,24 @@ Purell is a tiny Go library to normalize URLs. It returns a pure URL. Pure-ll. S
 ## API
 
 ```go
+import (
+  "github.com/PuerkitoBio/purell"
+)
+// [...]
+// Somewhere in a function
+normalized, err := purell.NormalizeUrlString("hTTp://someWEBsite.com:80/Amazing%3a/url/",
+  purell.FlagLowercaseScheme | purell.FlagLowercaseHost | FlagUppercaseEscapes)
+
+// Or...
+normalized := purell.MustNormalizeUrlString("hTTp://someWEBsite.com:80/Amazing%3a/url/",
+  purell.FlagLowercaseScheme | purell.FlagLowercaseHost | FlagUppercaseEscapes)
+
+// Or yet again...
+u, err := url.Parse("http://someurl.com")
+normalized, err := purell.NormalizeUrl(u, purell.FlagsSafe)
+
+// And finally...
+normalized := purell.MustNormalizeUrl(u, purell.FlagsSafe)
 
 ```
 
