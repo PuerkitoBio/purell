@@ -66,11 +66,11 @@ func ExampleMustNormalizeUrl() {
 
 ## API
 
-For convenience, the flags `FlagsSafe`, `FlagsUsuallySafe` and `FlagsUnsafe` are provided for the similarly grouped normalizations on [wikipedia's URL normalization page][wiki]. You can add (using the bitwise OR `|` operator) or remove (using the bitwise AND NOT `&^` operator) individual flags from the sets if required.
+For convenience, the set of flags `FlagsSafe`, `FlagsUsuallySafe` and `FlagsUnsafe` are provided for the similarly grouped normalizations on [wikipedia's URL normalization page][wiki]. You can add (using the bitwise OR `|` operator) or remove (using the bitwise AND NOT `&^` operator) individual flags from the sets if required.
 
 The [full godoc reference][godoc] is available on gopkgdoc.
 
-Note that FlagDecodeUnnecessaryEscapes, FlagUppercaseEscapes and FlagRemoveEmptyQuerySeparator are always implicitly set, because internally, the URL string is parsed as an URL object, which automatically decodes unnecessary escapes, uppercases necessary ones, and removes empty query separators (an unnecessary `?` at the end of the url). So this operation cannot **not** be done. For this reason, FlagRemoveEmptyQuerySeparator has been included in the FlagsSafe convenience constant, instead of FlagsUnsafe, where Wikipedia puts it (strangely?).
+Note that `FlagDecodeUnnecessaryEscapes`, `FlagUppercaseEscapes` and `FlagRemoveEmptyQuerySeparator` are always implicitly set, because internally, the URL string is parsed as an URL object, which automatically decodes unnecessary escapes, uppercases necessary ones, and removes empty query separators (an unnecessary `?` at the end of the url). So this operation cannot **not** be done. For this reason, `FlagRemoveEmptyQuerySeparator` has been included in the `FlagsSafe` convenience constant, instead of `FlagsUnsafe`, where Wikipedia puts it (strangely?).
 
 The *replace IP with domain name* normalization (`http://208.77.188.166/ → http://www.example.com/`) is obviously not possible for a library without making some network requests. This is not implemented in purell.
 
@@ -84,21 +84,21 @@ Consider the following URL:
 
 `HTTPS://www.RooT.com/toto/t%45%1f///a/./b/../c/?z=3&w=2&a=4&w=1#invalid`
 
-Normalizing with the FlagsSafe gives:
+Normalizing with the `FlagsSafe` gives:
 
 `https://www.root.com/toto/tE%1F///a/./b/../c/?z=3&w=2&a=4&w=1#invalid`
 
-With the FlagsUsuallySafe:
+With the `FlagsUsuallySafe`:
 
 `https://www.root.com/toto/tE%1F///a/c?z=3&w=2&a=4&w=1#invalid`
 
-And with FlagsUnsafe:
+And with `FlagsUnsafe:
 
 `http://root.com/toto/tE%1F/a/c?a=4&w=1&w=2&z=3`
 
 ## TODOs
 
-*    What if the source URL does not encode invalid characters? Parsing the string in a URL type automatically encodes some of them, though not all, it would seem. We'll see if it requires a normalization method.
+*    What if the source URL does not encode invalid characters? Parsing the string in a URL type automatically encodes some of them, though not all, it would seem.
 *    Add a class/default instance to allow specifying custom directory index names?
 
 ## License
