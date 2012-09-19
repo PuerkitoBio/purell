@@ -137,3 +137,19 @@ func TestAddTrailingSlash3(t *testing.T) {
 		assertResult("HTTP://www.SRC.ca:80/toto/titi/fin/?a=1", s, t)
 	}
 }
+
+func TestRemoveDotSegments(t *testing.T) {
+	if s, e := NormalizeUrlString("HTTP://root/a/b/./../../c/", FlagRemoveDotSegments); e != nil {
+		t.Errorf("Got error %s", e.Error())
+	} else {
+		assertResult("HTTP://root/c/", s, t)
+	}
+}
+
+func TestRemoveDotSegments2(t *testing.T) {
+	if s, e := NormalizeUrlString("HTTP://root/../a/b/./../c/../d", FlagRemoveDotSegments); e != nil {
+		t.Errorf("Got error %s", e.Error())
+	} else {
+		assertResult("HTTP://root/a/d", s, t)
+	}
+}

@@ -1,6 +1,7 @@
 package purell
 
 import (
+	//"fmt"
 	"net/url"
 	"regexp"
 	"strings"
@@ -21,6 +22,8 @@ const (
 	// Should choose one or the other (add-remove slash)
 	FlagRemoveTrailingSlash
 	FlagAddTrailingSlash
+
+	FlagRemoveDotSegments
 
 	FlagsSafe NormalizationFlags = FlagLowercaseHost | FlagLowercaseScheme | FlagUppercaseEscapes | FlagDecodeUnnecessaryEscapes | FlagRemoveDefaultPort
 )
@@ -67,6 +70,7 @@ func NormalizeUrl(u *url.URL, f NormalizationFlags) (string, error) {
 		FlagRemoveDefaultPort:   removeDefaultPort,
 		FlagRemoveTrailingSlash: removeTrailingSlash,
 		FlagAddTrailingSlash:    addTrailingSlash,
+		FlagRemoveDotSegments:   removeDotSegments,
 	}
 
 	for k, v := range flags {
@@ -118,5 +122,27 @@ func addTrailingSlash(u *url.URL) (*url.URL, error) {
 	} else if l = len(u.Host); l > 0 && !strings.HasSuffix(u.Host, "/") {
 		u.Host += "/"
 	}
+	return u, nil
+}
+
+func removeDotSegments(u *url.URL) (*url.URL, error) {
+	var dotFree []string
+
+	sections := strings.Split(u.Path, "/")
+	for _, s := range sections {
+		if s == ".." {
+			if len(dotFree) > 0 {
+				dotFree = dotFree[:len(dotFree)-1]
+			}
+		} else if s != "." {
+			dotFree = append(dotFree, s)
+		}
+	}
+	// Special case if host does not end with / and new path does not begin with /
+	u.Path = strings.Join(dotFree, "/")
+	if !strings.HasSuffix(u.Host, "/") && !strings.HasPrefix(u.Path, "/") {
+		u.Path = "/" + u.Path
+	}
+
 	return u, nil
 }
