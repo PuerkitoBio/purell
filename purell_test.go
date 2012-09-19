@@ -233,3 +233,11 @@ func TestAddWww(t *testing.T) {
 		assertResult("https://www.Root/a/b/c/", s, t)
 	}
 }
+
+func TestSortQuery(t *testing.T) {
+	if s, e := NormalizeUrlString("http://root/toto/?b=4&a=1&c=3&b=2&a=5", FlagSortQuery); e != nil {
+		t.Errorf("Got error %s", e.Error())
+	} else {
+		assertResult("http://root/toto/?a=1&a=5&b=2&b=4&c=3", s, t)
+	}
+}

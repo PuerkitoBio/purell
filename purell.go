@@ -1,9 +1,11 @@
 package purell
 
 import (
-	//"fmt"
+	"bytes"
+	"fmt"
 	"net/url"
 	"regexp"
+	"sort"
 	"strings"
 )
 
@@ -18,8 +20,7 @@ const (
 	FlagRemoveDefaultPort
 
 	// Usually safe normalizations
-	// Should choose one or the other (in add-remove slash)
-	FlagRemoveTrailingSlash
+	FlagRemoveTrailingSlash // Should choose one or the other (in add-remove slash)
 	FlagAddTrailingSlash
 	FlagRemoveDotSegments
 
@@ -28,15 +29,15 @@ const (
 	FlagRemoveFragment
 	FlagForceHttp
 	FlagRemoveDuplicateSlashes
-	// Should choose one or the other (in add-remove www)
-	FlagRemoveWww
+	FlagRemoveWww // Should choose one or the other (in add-remove www)
 	FlagAddWww
+	FlagSortQuery
 
 	FlagsSafe NormalizationFlags = FlagLowercaseHost | FlagLowercaseScheme | FlagUppercaseEscapes | FlagDecodeUnnecessaryEscapes | FlagRemoveDefaultPort
 
 	FlagsUsuallySafe NormalizationFlags = FlagsSafe | FlagRemoveTrailingSlash | FlagRemoveDotSegments
 
-	FlagsUnsafe NormalizationFlags = FlagsUsuallySafe | FlagRemoveDirectoryIndex | FlagRemoveFragment | FlagForceHttp | FlagRemoveDuplicateSlashes | FlagRemoveWww
+	FlagsUnsafe NormalizationFlags = FlagsUsuallySafe | FlagRemoveDirectoryIndex | FlagRemoveFragment | FlagForceHttp | FlagRemoveDuplicateSlashes | FlagRemoveWww | FlagSortQuery
 )
 
 var rxPort = regexp.MustCompile(`(:\d+)/?$`)
@@ -89,6 +90,7 @@ func NormalizeUrl(u *url.URL, f NormalizationFlags) (string, error) {
 		FlagRemoveDuplicateSlashes: removeDuplicateSlashes,
 		FlagRemoveWww:              removeWww,
 		FlagAddWww:                 addWww,
+		FlagSortQuery:              sortQuery,
 	}
 
 	for k, v := range flags {
@@ -204,6 +206,34 @@ func removeWww(u *url.URL) (*url.URL, error) {
 func addWww(u *url.URL) (*url.URL, error) {
 	if len(u.Host) > 0 && !strings.HasPrefix(strings.ToLower(u.Host), "www.") {
 		u.Host = "www." + u.Host
+	}
+	return u, nil
+}
+
+func sortQuery(u *url.URL) (*url.URL, error) {
+	q := u.Query()
+
+	if len(q) > 0 {
+		arKeys := make([]string, len(q))
+		i := 0
+		for k, _ := range q {
+			arKeys[i] = k
+			i++
+		}
+		sort.Strings(arKeys)
+		buf := new(bytes.Buffer)
+		for _, k := range arKeys {
+			sort.Strings(q[k])
+			for _, v := range q[k] {
+				if buf.Len() > 0 {
+					buf.WriteRune('&')
+				}
+				buf.WriteString(fmt.Sprintf("%s=%s", k, url.QueryEscape(v)))
+			}
+		}
+
+		// Rebuild the raw query string
+		u.RawQuery = buf.String()
 	}
 	return u, nil
 }
