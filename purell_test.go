@@ -73,3 +73,19 @@ func TestRemoveDefaultPort3(t *testing.T) {
 		assertResult("HTTP://www.SRC.ca:8080", s, t)
 	}
 }
+
+func TestSafe(t *testing.T) {
+	if s, e := NormalizeUrlString("HTTP://www.SRC.ca:80/to%1ato%8b%ee/OKnow%41%42%43%7e", FlagsSafe); e != nil {
+		t.Errorf("Got error %s", e.Error())
+	} else {
+		assertResult("http://www.src.ca/to%1Ato%8B%EE/OKnowABC~", s, t)
+	}
+}
+
+func TestBothLower(t *testing.T) {
+	if s, e := NormalizeUrlString("HTTP://www.SRC.ca:80/to%1ato%8b%ee/OKnow%41%42%43%7e", FlagLowercaseHost|FlagLowercaseScheme); e != nil {
+		t.Errorf("Got error %s", e.Error())
+	} else {
+		assertResult("http://www.src.ca:80/to%1Ato%8B%EE/OKnowABC~", s, t)
+	}
+}

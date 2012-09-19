@@ -30,7 +30,7 @@ normalized := purell.MustNormalizeUrl(u, purell.FlagsSafe)
 
 ```
 
-Note that FlagDecodeUnnecessaryEscapes is always implicitly set, because internally, the URL string is parsed as a URL object, which automatically decodes unnecessary escapes. So this operation cannot not be done.
+Note that FlagDecodeUnnecessaryEscapes and FlagUppercaseEscapes is always implicitly set, because internally, the URL string is parsed as a URL object, which automatically decodes unnecessary escapes and uppercases necessary ones. So this operation cannot not be done.
 
 ## TODOs
 

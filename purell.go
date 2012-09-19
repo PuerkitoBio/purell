@@ -18,7 +18,7 @@ const (
 	FlagsSafe NormalizationFlags = FlagLowercaseHost | FlagLowercaseScheme | FlagUppercaseEscapes | FlagDecodeUnnecessaryEscapes | FlagRemoveDefaultPort
 )
 
-var rxEscape = regexp.MustCompile(`(%[0-9a-fA-F]{2})`)
+//var rxEscape = regexp.MustCompile(`(%[0-9a-fA-F]{2})`)
 var rxPort = regexp.MustCompile(`(:\d+)/?$`)
 
 func MustNormalizeUrlString(u string, f NormalizationFlags) string {
@@ -53,16 +53,15 @@ func NormalizeUrl(u *url.URL, f NormalizationFlags) (string, error) {
 	var e error
 
 	// FlagDecodeUnnecessaryEscapes has no action, since it is done automatically
-	// by parsing the string as an URL.
+	// by parsing the string as an URL. Same for FlagUppercaseEscapes.
 	flags := map[NormalizationFlags]func(*url.URL) (*url.URL, error){
 		FlagLowercaseScheme:   lowercaseScheme,
 		FlagLowercaseHost:     lowercaseHost,
-		FlagUppercaseEscapes:  uppercaseEscapes,
 		FlagRemoveDefaultPort: removeDefaultPort,
 	}
 
 	for k, v := range flags {
-		if f|k == k {
+		if f&k == k {
 			if normalized, e = v(normalized); e != nil {
 				return "", e
 			}
@@ -83,14 +82,6 @@ func lowercaseHost(u *url.URL) (*url.URL, error) {
 		u.Host = strings.ToLower(u.Host)
 	}
 	return u, nil
-}
-
-func uppercaseEscapes(u *url.URL) (*url.URL, error) {
-	s := u.String()
-	s = rxEscape.ReplaceAllStringFunc(s, func(val string) string {
-		return strings.ToUpper(val)
-	})
-	return url.Parse(s)
 }
 
 func removeDefaultPort(u *url.URL) (*url.URL, error) {
