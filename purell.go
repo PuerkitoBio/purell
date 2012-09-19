@@ -18,18 +18,24 @@ const (
 	FlagRemoveDefaultPort
 
 	// Usually safe normalizations
-
-	// Should choose one or the other (add-remove slash)
+	// Should choose one or the other (in add-remove slash)
 	FlagRemoveTrailingSlash
 	FlagAddTrailingSlash
-
 	FlagRemoveDotSegments
 
+	// Unsafe normalizations
+	FlagRemoveDirectoryIndex
+
 	FlagsSafe NormalizationFlags = FlagLowercaseHost | FlagLowercaseScheme | FlagUppercaseEscapes | FlagDecodeUnnecessaryEscapes | FlagRemoveDefaultPort
+
+	FlagsUsuallySafe NormalizationFlags = FlagsSafe | FlagRemoveTrailingSlash | FlagRemoveDotSegments
+
+	FlagsUnsafe NormalizationFlags = FlagsUsuallySafe | FlagRemoveDirectoryIndex
 )
 
 //var rxEscape = regexp.MustCompile(`(%[0-9a-fA-F]{2})`)
 var rxPort = regexp.MustCompile(`(:\d+)/?$`)
+var rxDirIndex = regexp.MustCompile(`(^|/)((?:default|index)\.\w{1,4})$`)
 
 func MustNormalizeUrlString(u string, f NormalizationFlags) string {
 	if parsed, e := url.Parse(u); e != nil {
@@ -65,12 +71,13 @@ func NormalizeUrl(u *url.URL, f NormalizationFlags) (string, error) {
 	// FlagDecodeUnnecessaryEscapes has no action, since it is done automatically
 	// by parsing the string as an URL. Same for FlagUppercaseEscapes.
 	flags := map[NormalizationFlags]func(*url.URL) (*url.URL, error){
-		FlagLowercaseScheme:     lowercaseScheme,
-		FlagLowercaseHost:       lowercaseHost,
-		FlagRemoveDefaultPort:   removeDefaultPort,
-		FlagRemoveTrailingSlash: removeTrailingSlash,
-		FlagAddTrailingSlash:    addTrailingSlash,
-		FlagRemoveDotSegments:   removeDotSegments,
+		FlagLowercaseScheme:      lowercaseScheme,
+		FlagLowercaseHost:        lowercaseHost,
+		FlagRemoveDefaultPort:    removeDefaultPort,
+		FlagRemoveTrailingSlash:  removeTrailingSlash,
+		FlagRemoveDirectoryIndex: removeDirectoryIndex, // Must be before add trailing slash
+		FlagAddTrailingSlash:     addTrailingSlash,
+		FlagRemoveDotSegments:    removeDotSegments,
 	}
 
 	for k, v := range flags {
@@ -144,5 +151,10 @@ func removeDotSegments(u *url.URL) (*url.URL, error) {
 		u.Path = "/" + u.Path
 	}
 
+	return u, nil
+}
+
+func removeDirectoryIndex(u *url.URL) (*url.URL, error) {
+	u.Path = rxDirIndex.ReplaceAllString(u.Path, "$1")
 	return u, nil
 }

@@ -153,3 +153,27 @@ func TestRemoveDotSegments2(t *testing.T) {
 		assertResult("HTTP://root/a/d", s, t)
 	}
 }
+
+func TestUsuallySafe(t *testing.T) {
+	if s, e := NormalizeUrlString("HTTP://www.SRC.ca:80/to%1ato%8b%ee/./c/d/../OKnow%41%42%43%7e/?a=b", FlagsUsuallySafe); e != nil {
+		t.Errorf("Got error %s", e.Error())
+	} else {
+		assertResult("http://www.src.ca/to%1Ato%8B%EE/c/OKnowABC~?a=b", s, t)
+	}
+}
+
+func TestRemoveDirectoryIndex(t *testing.T) {
+	if s, e := NormalizeUrlString("HTTP://root/a/b/c/default.aspx", FlagRemoveDirectoryIndex); e != nil {
+		t.Errorf("Got error %s", e.Error())
+	} else {
+		assertResult("HTTP://root/a/b/c/", s, t)
+	}
+}
+
+func TestRemoveDirectoryIndex2(t *testing.T) {
+	if s, e := NormalizeUrlString("HTTP://root/a/b/c/default", FlagRemoveDirectoryIndex); e != nil {
+		t.Errorf("Got error %s", e.Error())
+	} else {
+		assertResult("HTTP://root/a/b/c/default", s, t)
+	}
+}
