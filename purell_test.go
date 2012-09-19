@@ -89,3 +89,51 @@ func TestBothLower(t *testing.T) {
 		assertResult("http://www.src.ca:80/to%1Ato%8B%EE/OKnowABC~", s, t)
 	}
 }
+
+func TestRemoveTrailingSlash(t *testing.T) {
+	if s, e := NormalizeUrlString("HTTP://www.SRC.ca:80/", FlagRemoveTrailingSlash); e != nil {
+		t.Errorf("Got error %s", e.Error())
+	} else {
+		assertResult("HTTP://www.SRC.ca:80", s, t)
+	}
+}
+
+func TestRemoveTrailingSlash2(t *testing.T) {
+	if s, e := NormalizeUrlString("HTTP://www.SRC.ca:80/toto/titi/", FlagRemoveTrailingSlash); e != nil {
+		t.Errorf("Got error %s", e.Error())
+	} else {
+		assertResult("HTTP://www.SRC.ca:80/toto/titi", s, t)
+	}
+}
+
+func TestRemoveTrailingSlash3(t *testing.T) {
+	if s, e := NormalizeUrlString("HTTP://www.SRC.ca:80/toto/titi/fin/?a=1", FlagRemoveTrailingSlash); e != nil {
+		t.Errorf("Got error %s", e.Error())
+	} else {
+		assertResult("HTTP://www.SRC.ca:80/toto/titi/fin?a=1", s, t)
+	}
+}
+
+func TestAddTrailingSlash(t *testing.T) {
+	if s, e := NormalizeUrlString("HTTP://www.SRC.ca:80", FlagAddTrailingSlash); e != nil {
+		t.Errorf("Got error %s", e.Error())
+	} else {
+		assertResult("HTTP://www.SRC.ca:80/", s, t)
+	}
+}
+
+func TestAddTrailingSlash2(t *testing.T) {
+	if s, e := NormalizeUrlString("HTTP://www.SRC.ca:80/toto/titi.html", FlagAddTrailingSlash); e != nil {
+		t.Errorf("Got error %s", e.Error())
+	} else {
+		assertResult("HTTP://www.SRC.ca:80/toto/titi.html/", s, t)
+	}
+}
+
+func TestAddTrailingSlash3(t *testing.T) {
+	if s, e := NormalizeUrlString("HTTP://www.SRC.ca:80/toto/titi/fin?a=1", FlagAddTrailingSlash); e != nil {
+		t.Errorf("Got error %s", e.Error())
+	} else {
+		assertResult("HTTP://www.SRC.ca:80/toto/titi/fin/?a=1", s, t)
+	}
+}

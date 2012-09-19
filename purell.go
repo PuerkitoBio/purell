@@ -9,11 +9,18 @@ import (
 type NormalizationFlags int
 
 const (
+	// Safe normalizations
 	FlagLowercaseScheme NormalizationFlags = 1 << iota
 	FlagLowercaseHost
 	FlagUppercaseEscapes
 	FlagDecodeUnnecessaryEscapes
 	FlagRemoveDefaultPort
+
+	// Usually safe normalizations
+
+	// Should choose one or the other (add-remove slash)
+	FlagRemoveTrailingSlash
+	FlagAddTrailingSlash
 
 	FlagsSafe NormalizationFlags = FlagLowercaseHost | FlagLowercaseScheme | FlagUppercaseEscapes | FlagDecodeUnnecessaryEscapes | FlagRemoveDefaultPort
 )
@@ -55,9 +62,11 @@ func NormalizeUrl(u *url.URL, f NormalizationFlags) (string, error) {
 	// FlagDecodeUnnecessaryEscapes has no action, since it is done automatically
 	// by parsing the string as an URL. Same for FlagUppercaseEscapes.
 	flags := map[NormalizationFlags]func(*url.URL) (*url.URL, error){
-		FlagLowercaseScheme:   lowercaseScheme,
-		FlagLowercaseHost:     lowercaseHost,
-		FlagRemoveDefaultPort: removeDefaultPort,
+		FlagLowercaseScheme:     lowercaseScheme,
+		FlagLowercaseHost:       lowercaseHost,
+		FlagRemoveDefaultPort:   removeDefaultPort,
+		FlagRemoveTrailingSlash: removeTrailingSlash,
+		FlagAddTrailingSlash:    addTrailingSlash,
 	}
 
 	for k, v := range flags {
@@ -91,5 +100,23 @@ func removeDefaultPort(u *url.URL) (*url.URL, error) {
 		}
 		return val
 	})
+	return u, nil
+}
+
+func removeTrailingSlash(u *url.URL) (*url.URL, error) {
+	if l := len(u.Path); l > 0 && strings.HasSuffix(u.Path, "/") {
+		u.Path = u.Path[:l-1]
+	} else if l = len(u.Host); l > 0 && strings.HasSuffix(u.Host, "/") {
+		u.Host = u.Host[:l-1]
+	}
+	return u, nil
+}
+
+func addTrailingSlash(u *url.URL) (*url.URL, error) {
+	if l := len(u.Path); l > 0 && !strings.HasSuffix(u.Path, "/") {
+		u.Path += "/"
+	} else if l = len(u.Host); l > 0 && !strings.HasSuffix(u.Host, "/") {
+		u.Host += "/"
+	}
 	return u, nil
 }
