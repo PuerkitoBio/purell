@@ -30,6 +30,12 @@ normalized := purell.MustNormalizeUrl(u, purell.FlagsSafe)
 
 ```
 
+Note that FlagDecodeUnnecessaryEscapes is always implicitly set, because internally, the URL string is parsed as a URL object, which automatically decodes unnecessary escapes. So this operation cannot not be done.
+
+## TODOs
+
+What if the source URL does not encode invalid characters? Parsing the string in a URL type automatically encodes some of them, though not all, it would seem. We'll see if it requires a normalization method.
+
 ## License
 
 The [BSD 3-Clause license][bsd].
