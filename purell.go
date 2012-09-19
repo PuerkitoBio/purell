@@ -1,3 +1,7 @@
+/*
+Package purell offers URL normalization as described on the wikipedia page:
+http://en.wikipedia.org/wiki/URL_normalization
+*/
 package purell
 
 import (
@@ -45,6 +49,8 @@ var rxPort = regexp.MustCompile(`(:\d+)/?$`)
 var rxDirIndex = regexp.MustCompile(`(^|/)((?:default|index)\.\w{1,4})$`)
 var rxDupSlashes = regexp.MustCompile(`/{2,}`)
 
+// MustNormalizeUrlString() returns the normalized string, and panics if an error occurs.
+// It takes an URL string as input, as well as the normalization flags.
 func MustNormalizeUrlString(u string, f NormalizationFlags) string {
 	if parsed, e := url.Parse(u); e != nil {
 		panic(e)
@@ -54,6 +60,8 @@ func MustNormalizeUrlString(u string, f NormalizationFlags) string {
 	panic("Unreachable code.")
 }
 
+// MustNormalizeUrl() returns the normalized string, and panics if an error occurs.
+// It takes a parsed URL object as input, as well as the normalization flags.
 func MustNormalizeUrl(u *url.URL, f NormalizationFlags) string {
 	if res, e := NormalizeUrl(u, f); e != nil {
 		panic(e)
@@ -63,6 +71,8 @@ func MustNormalizeUrl(u *url.URL, f NormalizationFlags) string {
 	panic("Unreachable code.")
 }
 
+// NormalizeUrlString() returns the normalized string, or an error.
+// It takes an URL string as input, as well as the normalization flags.
 func NormalizeUrlString(u string, f NormalizationFlags) (string, error) {
 	if parsed, e := url.Parse(u); e != nil {
 		return "", e
@@ -72,6 +82,8 @@ func NormalizeUrlString(u string, f NormalizationFlags) (string, error) {
 	panic("Unreachable code.")
 }
 
+// NormalizeUrl() returns the normalized string, or an error.
+// It takes a parsed URL object as input, as well as the normalization flags.
 func NormalizeUrl(u *url.URL, f NormalizationFlags) (string, error) {
 	var normalized *url.URL = u
 	var e error

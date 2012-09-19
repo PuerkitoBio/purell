@@ -32,7 +32,11 @@ normalized := purell.MustNormalizeUrl(u, purell.FlagsSafe)
 
 ```
 
-Note that FlagDecodeUnnecessaryEscapes, FlagUppercaseEscapes and FlagRemoveEmptyQuerySeparator are always implicitly set, because internally, the URL string is parsed as an URL object, which automatically decodes unnecessary escapes and uppercases necessary ones, and removes empty query separators (an unnecessary `?` at the end of the url). So this operation cannot **not** be done.
+For convenience, the flags `FlagsSafe`, `FlagsUsuallySafe` and `FlagsUnsafe` are provided for the similarly grouped normalizations on [wikipedia's URL normalization page][wiki].
+
+The [full godoc reference][godoc] is available on gopkgdoc.
+
+Note that FlagDecodeUnnecessaryEscapes, FlagUppercaseEscapes and FlagRemoveEmptyQuerySeparator are always implicitly set, because internally, the URL string is parsed as an URL object, which automatically decodes unnecessary escapes and uppercases necessary ones, and removes empty query separators (an unnecessary `?` at the end of the url). So this operation cannot **not** be done. For this reason, FlagRemoveEmptyQuerySeparator has been included in the FlagsSafe convenience constant, instead of FlagsUnsafe, where Wikipedia puts it (strangely?).
 
 The *replace IP with domain name* normalization (`http://208.77.188.166/ → http://www.example.com/`) is obviously not possible for a library without making some network requests. This is not implemented in purell.
 
@@ -50,3 +54,4 @@ The [BSD 3-Clause license][bsd].
 [bsd]: http://opensource.org/licenses/BSD-3-Clause
 [wiki]: http://en.wikipedia.org/wiki/URL_normalization
 [rfc]: http://tools.ietf.org/html/rfc3986#section-6
+[godoc]: http://go.pkgdoc.org/github.com/puerkitobio/purell
