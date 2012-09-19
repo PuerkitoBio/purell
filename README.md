@@ -1,6 +1,6 @@
 # Purell
 
-Purell is a tiny Go library to normalize URLs. It returns a pure URL. Pure-ll. Sanitizer and all. Yeah, I know...
+Purell is a tiny Go library to normalize URLs. It returns a pure URL. Pure-ell. Sanitizer and all. Yeah, I know...
 
 Based on the [wikipedia paper][wiki] and the [RFC 3986 document][rfc].
 
@@ -8,35 +8,69 @@ Based on the [wikipedia paper][wiki] and the [RFC 3986 document][rfc].
 
 `go get github.com/PuerkitoBio/purell`
 
-## API
+## Examples
+
+From `example_test.go` (note that in your code, you would import "github.com/PuerkitoBio/purell", and would prefix references to its methods and constants with "purell."):
 
 ```go
+package purell
+
 import (
-  "github.com/PuerkitoBio/purell"
+  "fmt"
+  "net/url"
 )
-// [...]
-// Somewhere in a function
-normalized, err := purell.NormalizeUrlString("hTTp://someWEBsite.com:80/Amazing%3a/url/",
-  purell.FlagLowercaseScheme | purell.FlagLowercaseHost | FlagUppercaseEscapes)
 
-// Or...
-normalized := purell.MustNormalizeUrlString("hTTp://someWEBsite.com:80/Amazing%3a/url/",
-  purell.FlagLowercaseScheme | purell.FlagLowercaseHost | FlagUppercaseEscapes)
+func ExampleNormalizeUrlString() {
+  if normalized, err := NormalizeUrlString("hTTp://someWEBsite.com:80/Amazing%3f/url/",
+    FlagLowercaseScheme|FlagLowercaseHost|FlagUppercaseEscapes); err != nil {
+    panic(err)
+  } else {
+    fmt.Print(normalized)
+  }
+  // Output: http://somewebsite.com:80/Amazing%3F/url/
+}
 
-// Or yet again...
-u, err := url.Parse("http://someurl.com")
-normalized, err := purell.NormalizeUrl(u, purell.FlagsSafe)
+func ExampleMustNormalizeUrlString() {
+  normalized := MustNormalizeUrlString("hTTpS://someWEBsite.com:80/Amazing%fa/url/",
+    FlagsUnsafe)
+  fmt.Print(normalized)
 
-// And finally...
-normalized := purell.MustNormalizeUrl(u, purell.FlagsSafe)
+  // Output: http://somewebsite.com/Amazing%FA/url
+}
 
+func ExampleNormalizeUrl() {
+  if u, err := url.Parse("Http://SomeUrl.com:8080/a/b/.././c///g?c=3&a=1&b=9&c=0#target"); err != nil {
+    panic(err)
+  } else {
+    if normalized, err := NormalizeUrl(u, FlagsUsuallySafe|FlagRemoveDuplicateSlashes|FlagRemoveFragment); err != nil {
+      panic(err)
+    } else {
+      fmt.Print(normalized)
+    }
+  }
+
+  // Output: http://someurl.com:8080/a/c/g?c=3&a=1&b=9&c=0
+}
+
+func ExampleMustNormalizeUrl() {
+  if u, err := url.Parse("Http://SomeUrl.com:8080/a/b/.././c///g?c=3&a=1&b=9&c=0#target"); err != nil {
+    panic(err)
+  } else {
+    normalized := MustNormalizeUrl(u, FlagsUnsafe&^FlagRemoveDotSegments)
+    fmt.Print(normalized)
+  }
+
+  // Output: http://someurl.com:8080/a/b/.././c/g?a=1&b=9&c=0&c=3
+}
 ```
 
-For convenience, the flags `FlagsSafe`, `FlagsUsuallySafe` and `FlagsUnsafe` are provided for the similarly grouped normalizations on [wikipedia's URL normalization page][wiki].
+## API
+
+For convenience, the flags `FlagsSafe`, `FlagsUsuallySafe` and `FlagsUnsafe` are provided for the similarly grouped normalizations on [wikipedia's URL normalization page][wiki]. You can add (using the bitwise OR `|` operator) or remove (using the bitwise AND NOT `&^` operator) individual flags from the sets if required.
 
 The [full godoc reference][godoc] is available on gopkgdoc.
 
-Note that FlagDecodeUnnecessaryEscapes, FlagUppercaseEscapes and FlagRemoveEmptyQuerySeparator are always implicitly set, because internally, the URL string is parsed as an URL object, which automatically decodes unnecessary escapes and uppercases necessary ones, and removes empty query separators (an unnecessary `?` at the end of the url). So this operation cannot **not** be done. For this reason, FlagRemoveEmptyQuerySeparator has been included in the FlagsSafe convenience constant, instead of FlagsUnsafe, where Wikipedia puts it (strangely?).
+Note that FlagDecodeUnnecessaryEscapes, FlagUppercaseEscapes and FlagRemoveEmptyQuerySeparator are always implicitly set, because internally, the URL string is parsed as an URL object, which automatically decodes unnecessary escapes, uppercases necessary ones, and removes empty query separators (an unnecessary `?` at the end of the url). So this operation cannot **not** be done. For this reason, FlagRemoveEmptyQuerySeparator has been included in the FlagsSafe convenience constant, instead of FlagsUnsafe, where Wikipedia puts it (strangely?).
 
 The *replace IP with domain name* normalization (`http://208.77.188.166/ → http://www.example.com/`) is obviously not possible for a library without making some network requests. This is not implemented in purell.
 
