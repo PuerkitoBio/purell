@@ -92,7 +92,7 @@ With the `FlagsUsuallySafe`:
 
 `https://www.root.com/toto/tE%1F///a/c?z=3&w=2&a=4&w=1#invalid`
 
-And with `FlagsUnsafe:
+And with `FlagsUnsafe`:
 
 `http://root.com/toto/tE%1F/a/c?a=4&w=1&w=2&z=3`
 
