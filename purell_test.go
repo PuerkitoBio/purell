@@ -241,3 +241,19 @@ func TestSortQuery(t *testing.T) {
 		assertResult("http://root/toto/?a=1&a=5&b=2&b=4&c=3", s, t)
 	}
 }
+
+func TestRemoveEmptyQuerySeparator(t *testing.T) {
+	if s, e := NormalizeUrlString("http://root/toto/?", FlagRemoveEmptyQuerySeparator); e != nil {
+		t.Errorf("Got error %s", e.Error())
+	} else {
+		assertResult("http://root/toto/", s, t)
+	}
+}
+
+func TestUnsafe(t *testing.T) {
+	if s, e := NormalizeUrlString("HTTPS://RooT/toto/t%45%1f///a/./b/../c/?z=3&w=2&a=4&w=1#invalid", FlagsUnsafe); e != nil {
+		t.Errorf("Got error %s", e.Error())
+	} else {
+		assertResult("http://root/toto/tE%1F/a/c?a=4&w=1&w=2&z=3", s, t)
+	}
+}

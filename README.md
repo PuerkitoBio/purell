@@ -32,15 +32,16 @@ normalized := purell.MustNormalizeUrl(u, purell.FlagsSafe)
 
 ```
 
-Note that FlagDecodeUnnecessaryEscapes and FlagUppercaseEscapes is always implicitly set, because internally, the URL string is parsed as a URL object, which automatically decodes unnecessary escapes and uppercases necessary ones. So this operation cannot not be done.
+Note that FlagDecodeUnnecessaryEscapes, FlagUppercaseEscapes and FlagRemoveEmptyQuerySeparator are always implicitly set, because internally, the URL string is parsed as an URL object, which automatically decodes unnecessary escapes and uppercases necessary ones, and removes empty query separators (an unnecessary `?` at the end of the url). So this operation cannot **not** be done.
 
 The *replace IP with domain name* normalization (`http://208.77.188.166/ → http://www.example.com/`) is obviously not possible for a library without making some network requests. This is not implemented in purell.
+
+The *remove unused query string parameters* and *remove default query parameters* are also not implemented, since this is a very case-specific normalization, and it is quite trivial to do with an URL object.
 
 ## TODOs
 
 *    What if the source URL does not encode invalid characters? Parsing the string in a URL type automatically encodes some of them, though not all, it would seem. We'll see if it requires a normalization method.
 *    Add a class/default instance to allow specifying custom directory index names?
-
 
 ## License
 

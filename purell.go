@@ -18,6 +18,7 @@ const (
 	FlagUppercaseEscapes
 	FlagDecodeUnnecessaryEscapes
 	FlagRemoveDefaultPort
+	FlagRemoveEmptyQuerySeparator
 
 	// Usually safe normalizations
 	FlagRemoveTrailingSlash // Should choose one or the other (in add-remove slash)
@@ -33,7 +34,7 @@ const (
 	FlagAddWww
 	FlagSortQuery
 
-	FlagsSafe NormalizationFlags = FlagLowercaseHost | FlagLowercaseScheme | FlagUppercaseEscapes | FlagDecodeUnnecessaryEscapes | FlagRemoveDefaultPort
+	FlagsSafe NormalizationFlags = FlagLowercaseHost | FlagLowercaseScheme | FlagUppercaseEscapes | FlagDecodeUnnecessaryEscapes | FlagRemoveDefaultPort | FlagRemoveEmptyQuerySeparator
 
 	FlagsUsuallySafe NormalizationFlags = FlagsSafe | FlagRemoveTrailingSlash | FlagRemoveDotSegments
 
