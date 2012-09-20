@@ -59,9 +59,7 @@ var flags = map[NormalizationFlags]func(*url.URL){
 	FlagLowercaseScheme:        lowercaseScheme,
 	FlagLowercaseHost:          lowercaseHost,
 	FlagRemoveDefaultPort:      removeDefaultPort,
-	FlagRemoveTrailingSlash:    removeTrailingSlash,
-	FlagRemoveDirectoryIndex:   removeDirectoryIndex, // Must be before add trailing slash
-	FlagAddTrailingSlash:       addTrailingSlash,
+	FlagRemoveDirectoryIndex:   removeDirectoryIndex,
 	FlagRemoveDotSegments:      removeDotSegments,
 	FlagRemoveFragment:         removeFragment,
 	FlagForceHTTP:              forceHTTP,
@@ -69,6 +67,8 @@ var flags = map[NormalizationFlags]func(*url.URL){
 	FlagRemoveWWW:              removeWWW,
 	FlagAddWWW:                 addWWW,
 	FlagSortQuery:              sortQuery,
+	FlagRemoveTrailingSlash:    removeTrailingSlash, // These two (add/remove trailing slash) must be last
+	FlagAddTrailingSlash:       addTrailingSlash,
 }
 
 // MustNormalizeURLString returns the normalized string, and panics if an error occurs.
@@ -144,9 +144,10 @@ func addTrailingSlash(u *url.URL) {
 }
 
 func removeDotSegments(u *url.URL) {
-	var dotFree []string
-
 	if len(u.Path) > 0 {
+		var dotFree []string
+		var lastIsDot bool
+
 		sections := strings.Split(u.Path, "/")
 		for _, s := range sections {
 			if s == ".." {
@@ -156,11 +157,16 @@ func removeDotSegments(u *url.URL) {
 			} else if s != "." {
 				dotFree = append(dotFree, s)
 			}
+			lastIsDot = (s == "." || s == "..")
 		}
 		// Special case if host does not end with / and new path does not begin with /
 		u.Path = strings.Join(dotFree, "/")
 		if !strings.HasSuffix(u.Host, "/") && !strings.HasPrefix(u.Path, "/") {
 			u.Path = "/" + u.Path
+		}
+		// Special case if the last segment was a dot, make sure the path ends with a slash
+		if lastIsDot && !strings.HasSuffix(u.Path, "/") {
+			u.Path += "/"
 		}
 	}
 }

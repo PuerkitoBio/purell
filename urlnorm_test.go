@@ -52,9 +52,9 @@ func TestUrlnorm(t *testing.T) {
 		"http://[::ffff:192.168.1.1]:80/test":           "http://[::ffff:192.168.1.1]/test",              //ipv4 address in ipv6 notation
 		"htTps://[::fFff:192.168.1.1]:443/test":         "https://[::ffff:192.168.1.1]/test",             //ipv4 address in ipv6 notation
 	}
-	
+
 	for bad, good := range testcases {
-		s, e := NormalizeURLString(bad, FlagsSafe | FlagRemoveDotSegments);
+		s, e := NormalizeURLString(bad, FlagsSafe|FlagRemoveDotSegments)
 		if e != nil {
 			log.Printf("%s normalizing %v to %v", e.Error(), bad, good)
 			t.Fail()
@@ -95,13 +95,13 @@ func TestSlashes(t *testing.T) {
 	}
 
 	for bad, good := range testcases {
-		s, e := NormalizeURLString(bad, FlagsSafe | FlagRemoveDotSegments);
+		s, e := NormalizeURLString(bad, FlagsSafe|FlagRemoveDotSegments|FlagRemoveDuplicateSlashes)
 		if e != nil {
 			log.Printf("%s normalizing %v to %v", e.Error(), bad, good)
 			t.Fail()
 		} else {
 			if s != good {
-				log.Printf("expected: %v got: %v", good, s)
+				log.Printf("from: %v expected: %v got: %v", bad, good, s)
 				t.Fail()
 			}
 		}
