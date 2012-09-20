@@ -16,7 +16,7 @@ func ExampleNormalizeURLString() {
 }
 
 func ExampleMustNormalizeURLString() {
-	normalized := MustNormalizeURLString("hTTpS://someWEBsite.com:80/Amazing%fa/url/",
+	normalized := MustNormalizeURLString("hTTpS://someWEBsite.com:443/Amazing%fa/url/",
 		FlagsUnsafe)
 	fmt.Print(normalized)
 

@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 )
 
@@ -40,6 +41,10 @@ const (
 	FlagAddWWW
 	FlagSortQuery
 
+	// Normalizations not in the wikipedia article, required to cover tests cases
+	// submitted by jehiah (not included in any convenience set at the moment)
+	FlagDecodeDWORDHost
+
 	FlagsSafe NormalizationFlags = FlagLowercaseHost | FlagLowercaseScheme | FlagUppercaseEscapes | FlagDecodeUnnecessaryEscapes | FlagRemoveDefaultPort | FlagRemoveEmptyQuerySeparator
 
 	FlagsUsuallySafe NormalizationFlags = FlagsSafe | FlagRemoveTrailingSlash | FlagRemoveDotSegments
@@ -56,10 +61,31 @@ const (
 var rxPort = regexp.MustCompile(`(:\d+)/?$`)
 var rxDirIndex = regexp.MustCompile(`(^|/)((?:default|index)\.\w{1,4})$`)
 var rxDupSlashes = regexp.MustCompile(`/{2,}`)
+var rxDWORDHost = regexp.MustCompile(`^(\d+)((?:\.+)?(?:\:\d*)?)$`)
 
 // Map of flags to implementation function.
 // FlagDecodeUnnecessaryEscapes has no action, since it is done automatically
 // by parsing the string as an URL. Same for FlagUppercaseEscapes and FlagRemoveEmptyQuerySeparator.
+
+// Since maps have undefined traversing order, make a slice of ordered keys
+var flagsOrder = []NormalizationFlags{
+	FlagLowercaseScheme,
+	FlagLowercaseHost,
+	FlagRemoveDefaultPort,
+	FlagRemoveDirectoryIndex,
+	FlagRemoveDotSegments,
+	FlagRemoveFragment,
+	FlagForceHTTP, // Must be after remove default port (because https=443/http=80)
+	FlagRemoveDuplicateSlashes,
+	FlagRemoveWWW,
+	FlagAddWWW,
+	FlagSortQuery,
+	FlagDecodeDWORDHost,
+	FlagRemoveTrailingSlash, // These two (add/remove trailing slash) must be last
+	FlagAddTrailingSlash,
+}
+
+// ... and then the map, where order is unimportant
 var flags = map[NormalizationFlags]func(*url.URL){
 	FlagLowercaseScheme:        lowercaseScheme,
 	FlagLowercaseHost:          lowercaseHost,
@@ -67,16 +93,17 @@ var flags = map[NormalizationFlags]func(*url.URL){
 	FlagRemoveDirectoryIndex:   removeDirectoryIndex,
 	FlagRemoveDotSegments:      removeDotSegments,
 	FlagRemoveFragment:         removeFragment,
-	FlagForceHTTP:              forceHTTP, // Must be after remove default port (because https=443/http=80)
+	FlagForceHTTP:              forceHTTP,
 	FlagRemoveDuplicateSlashes: removeDuplicateSlashes,
 	FlagRemoveWWW:              removeWWW,
 	FlagAddWWW:                 addWWW,
 	FlagSortQuery:              sortQuery,
-	FlagRemoveTrailingSlash:    removeTrailingSlash, // These two (add/remove trailing slash) must be last
+	FlagDecodeDWORDHost:        decodeDWORDHost,
+	FlagRemoveTrailingSlash:    removeTrailingSlash,
 	FlagAddTrailingSlash:       addTrailingSlash,
 }
 
-// MustNormalizeURLString returns the normalized string, and panics if an error occurs.
+// MustNormalizeURLStringLString returns the normalized string, and panics if an error occurs.
 // It takes an URL string as input, as well as the normalization flags.
 func MustNormalizeURLString(u string, f NormalizationFlags) string {
 	if parsed, e := url.Parse(u); e != nil {
@@ -101,9 +128,9 @@ func NormalizeURLString(u string, f NormalizationFlags) (string, error) {
 // NormalizeURL returns the normalized string.
 // It takes a parsed URL object as input, as well as the normalization flags.
 func NormalizeURL(u *url.URL, f NormalizationFlags) string {
-	for k, v := range flags {
+	for _, k := range flagsOrder {
 		if f&k == k {
-			v(u)
+			flags[k](u)
 		}
 	}
 	return u.String()
@@ -235,5 +262,14 @@ func sortQuery(u *url.URL) {
 
 		// Rebuild the raw query string
 		u.RawQuery = buf.String()
+	}
+}
+
+func decodeDWORDHost(u *url.URL) {
+	if len(u.Host) > 0 {
+		if matches := rxDWORDHost.FindStringSubmatch(u.Host); len(matches) > 1 {
+			dword, _ := strconv.ParseInt(matches[1], 10, 0)
+			fmt.Printf("DWORD=%d\n", dword)
+		}
 	}
 }
