@@ -56,11 +56,15 @@ For convenience, the set of flags `FlagsSafe`, `FlagsUsuallySafe` and `FlagsUnsa
 
 The [full godoc reference][godoc] is available on gopkgdoc.
 
-Note that `FlagDecodeUnnecessaryEscapes`, `FlagUppercaseEscapes` and `FlagRemoveEmptyQuerySeparator` are always implicitly set, because internally, the URL string is parsed as an URL object, which automatically decodes unnecessary escapes, uppercases necessary ones, and removes empty query separators (an unnecessary `?` at the end of the url). So this operation cannot **not** be done. For this reason, `FlagRemoveEmptyQuerySeparator` has been included in the `FlagsSafe` convenience constant, instead of `FlagsUnsafe`, where Wikipedia puts it (strangely?).
+Some things to note:
 
-The *replace IP with domain name* normalization (`http://208.77.188.166/ → http://www.example.com/`) is obviously not possible for a library without making some network requests. This is not implemented in purell.
+*    `FlagDecodeUnnecessaryEscapes`, `FlagUppercaseEscapes` and `FlagRemoveEmptyQuerySeparator` are always implicitly set, because internally, the URL string is parsed as an URL object, which automatically decodes unnecessary escapes, uppercases necessary ones, and removes empty query separators (an unnecessary `?` at the end of the url). So this operation cannot **not** be done. For this reason, `FlagRemoveEmptyQuerySeparator` has been included in the `FlagsSafe` convenience constant, instead of `FlagsUnsafe`, where Wikipedia puts it (strangely?).
 
-The *remove unused query string parameters* and *remove default query parameters* are also not implemented, since this is a very case-specific normalization, and it is quite trivial to do with an URL object.
+*    When the `NormalizeUrl` function is used (passing an URL object), this source URL object is modified (that is, after the call, the URL object will be modified to reflect the normalization).
+
+*    The *replace IP with domain name* normalization (`http://208.77.188.166/ → http://www.example.com/`) is obviously not possible for a library without making some network requests. This is not implemented in purell.
+
+*    The *remove unused query string parameters* and *remove default query parameters* are also not implemented, since this is a very case-specific normalization, and it is quite trivial to do with an URL object.
 
 ### Safe vs Usually Safe vs Unsafe
 

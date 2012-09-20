@@ -94,14 +94,12 @@ func NormalizeUrlString(u string, f NormalizationFlags) (string, error) {
 // NormalizeUrl() returns the normalized string.
 // It takes a parsed URL object as input, as well as the normalization flags.
 func NormalizeUrl(u *url.URL, f NormalizationFlags) string {
-	var normalized *url.URL = u
-
 	for k, v := range flags {
 		if f&k == k {
-			v(normalized)
+			v(u)
 		}
 	}
-	return normalized.String()
+	return u.String()
 }
 
 func lowercaseScheme(u *url.URL) {

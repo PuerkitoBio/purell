@@ -1,6 +1,7 @@
 package purell
 
 import (
+	"net/url"
 	"testing"
 )
 
@@ -272,4 +273,13 @@ func TestUsuallySafe2(t *testing.T) {
 	} else {
 		assertResult("https://www.root.com/toto/tE%1F///a/c?z=3&w=2&a=4&w=1#invalid", s, t)
 	}
+}
+
+func TestSourceModified(t *testing.T) {
+	u, _ := url.Parse("HTTPS://www.RooT.com/toto/t%45%1f///a/./b/../c/?z=3&w=2&a=4&w=1#invalid")
+	NormalizeUrl(u, FlagsUnsafe)
+	if u.Host != "http" {
+		t.Logf("Expected source URL to have host http, found %s.", u.Host)
+	}
+	assertResult("http://root.com/toto/tE%1F/a/c?a=4&w=1&w=2&z=3", u.String(), t)
 }
