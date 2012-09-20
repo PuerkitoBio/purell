@@ -45,6 +45,7 @@ const (
 	// submitted by jehiah (not included in any convenience set at the moment)
 	FlagDecodeDWORDHost
 	FlagDecodeOctalHost
+	FlagDecodeHexHost
 
 	FlagsSafe NormalizationFlags = FlagLowercaseHost | FlagLowercaseScheme | FlagUppercaseEscapes | FlagDecodeUnnecessaryEscapes | FlagRemoveDefaultPort | FlagRemoveEmptyQuerySeparator
 
@@ -64,6 +65,7 @@ var rxDirIndex = regexp.MustCompile(`(^|/)((?:default|index)\.\w{1,4})$`)
 var rxDupSlashes = regexp.MustCompile(`/{2,}`)
 var rxDWORDHost = regexp.MustCompile(`^(\d+)((?:\.+)?(?:\:\d*)?)$`)
 var rxOctalHost = regexp.MustCompile(`^(0\d*)\.(0\d*)\.(0\d*)\.(0\d*)((?:\.+)?(?:\:\d*)?)$`)
+var rxHexHost = regexp.MustCompile(`^0x([0-9A-Fa-f]+)((?:\.+)?(?:\:\d*)?)$`)
 
 // Map of flags to implementation function.
 // FlagDecodeUnnecessaryEscapes has no action, since it is done automatically
@@ -84,6 +86,7 @@ var flagsOrder = []NormalizationFlags{
 	FlagSortQuery,
 	FlagDecodeDWORDHost,
 	FlagDecodeOctalHost,
+	FlagDecodeHexHost,
 	FlagRemoveTrailingSlash, // These two (add/remove trailing slash) must be last
 	FlagAddTrailingSlash,
 }
@@ -103,6 +106,7 @@ var flags = map[NormalizationFlags]func(*url.URL){
 	FlagSortQuery:              sortQuery,
 	FlagDecodeDWORDHost:        decodeDWORDHost,
 	FlagDecodeOctalHost:        decodeOctalHost,
+	FlagDecodeHexHost:          decodeHexHost,
 	FlagRemoveTrailingSlash:    removeTrailingSlash,
 	FlagAddTrailingSlash:       addTrailingSlash,
 }
@@ -292,6 +296,19 @@ func decodeOctalHost(u *url.URL) {
 				parts[i-1], _ = strconv.ParseInt(matches[i], 8, 0)
 			}
 			u.Host = fmt.Sprintf("%d.%d.%d.%d%s", parts[0], parts[1], parts[2], parts[3], matches[5])
+		}
+	}
+}
+
+func decodeHexHost(u *url.URL) {
+	if len(u.Host) > 0 {
+		if matches := rxHexHost.FindStringSubmatch(u.Host); len(matches) > 2 {
+			// Conversion is safe because of regex validation
+			parsed, _ := strconv.ParseInt(matches[1], 16, 0)
+			// Set host as DWORD (base 10) encoded host
+			u.Host = fmt.Sprintf("%d%s", parsed, matches[2])
+			// The rest is the same as decoding a DWORD host
+			decodeDWORDHost(u)
 		}
 	}
 }

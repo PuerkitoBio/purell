@@ -110,6 +110,26 @@ func TestDWORDIP(t *testing.T) {
 	}
 }
 
+func TestHexIP(t *testing.T) {
+	testcases := map[string]string{
+		"http://0x123.1113982867/":       "http://0x123.1113982867/",         //NOT ip hex encoding
+		"http://0x42660793/":             "http://66.102.7.147/",             //ip hex encoding
+		"http://0x42660793.:23/":         "http://66.102.7.147.:23/",         //ip hex encoding
+		"http://USER:pass@0x42660793../": "http://USER:pass@66.102.7.147../", //ip hex encoding
+	}
+
+	for bad, good := range testcases {
+		s, e := NormalizeURLString(bad, FlagsSafe|FlagDecodeHexHost)
+		if e != nil {
+			t.Errorf("%s normalizing %v to %v", e.Error(), bad, good)
+		} else {
+			if s != good {
+				t.Errorf("source: %v expected: %v got: %v", bad, good, s)
+			}
+		}
+	}
+}
+
 // This tests normalization to a unicode representation
 // precent escapes for unreserved values are unescaped to their unicode value
 // tests normalization to idna domains
