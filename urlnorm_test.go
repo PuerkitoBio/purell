@@ -7,16 +7,9 @@ import (
 // Test cases merged from PR #1
 // Originally from https://github.com/jehiah/urlnorm/blob/master/test_urlnorm.py
 
-func TestIPv6(t *testing.T) {
-	testcases := map[string]string{
-		"http://[2001:db8:1f70::999:de8:7648:6e8]/test": "http://[2001:db8:1f70::999:de8:7648:6e8]/test", // ipv6 address
-		"http://[::ffff:192.168.1.1]/test":              "http://[::ffff:192.168.1.1]/test",              //ipv4 address in ipv6 notation
-		"http://[::ffff:192.168.1.1]:80/test":           "http://[::ffff:192.168.1.1]/test",              //ipv4 address in ipv6 notation
-		"htTps://[::fFff:192.168.1.1]:443/test":         "https://[::ffff:192.168.1.1]/test",             //ipv4 address in ipv6 notation
-	}
-
-	for bad, good := range testcases {
-		s, e := NormalizeURLString(bad, FlagsSafe|FlagRemoveDotSegments)
+func assertMap(t *testing.T, cases map[string]string, f NormalizationFlags) {
+	for bad, good := range cases {
+		s, e := NormalizeURLString(bad, f)
 		if e != nil {
 			t.Errorf("%s normalizing %v to %v", e.Error(), bad, good)
 		} else {
@@ -27,21 +20,23 @@ func TestIPv6(t *testing.T) {
 	}
 }
 
+func TestIPv6(t *testing.T) {
+	testcases := map[string]string{
+		"http://[2001:db8:1f70::999:de8:7648:6e8]/test": "http://[2001:db8:1f70::999:de8:7648:6e8]/test", // ipv6 address
+		"http://[::ffff:192.168.1.1]/test":              "http://[::ffff:192.168.1.1]/test",              //ipv4 address in ipv6 notation
+		"http://[::ffff:192.168.1.1]:80/test":           "http://[::ffff:192.168.1.1]/test",              //ipv4 address in ipv6 notation
+		"htTps://[::fFff:192.168.1.1]:443/test":         "https://[::ffff:192.168.1.1]/test",             //ipv4 address in ipv6 notation
+	}
+
+	assertMap(t, testcases, FlagsSafe|FlagRemoveDotSegments)
+}
+
 func TestFtp(t *testing.T) {
 	testcases := map[string]string{
 		"ftp://user:pass@ftp.foo.net/foo/bar": "ftp://user:pass@ftp.foo.net/foo/bar",
 	}
 
-	for bad, good := range testcases {
-		s, e := NormalizeURLString(bad, FlagsSafe|FlagRemoveDotSegments)
-		if e != nil {
-			t.Errorf("%s normalizing %v to %v", e.Error(), bad, good)
-		} else {
-			if s != good {
-				t.Errorf("source: %v expected: %v got: %v", bad, good, s)
-			}
-		}
-	}
+	assertMap(t, testcases, FlagsSafe|FlagRemoveDotSegments)
 }
 
 func TestStandardCases(t *testing.T) {
@@ -56,18 +51,19 @@ func TestStandardCases(t *testing.T) {
 		"http://test.example/%25/?p=%20val%20%25": "http://test.example/%25/?p=%20val%20%25",
 		//check that spaces are collated to "+"
 		"http://test.example/path/with a%20space+/": "http://test.example/path/with%20a%20space+/",
+		"http://test.example/?":                     "http://test.example/", //no trailing ?
+		"http://a.COM/path/?b&a":                    "http://a.com/path/?b&a",
 	}
 
-	for bad, good := range testcases {
-		s, e := NormalizeURLString(bad, FlagsSafe|FlagRemoveDotSegments)
-		if e != nil {
-			t.Errorf("%s normalizing %v to %v", e.Error(), bad, good)
-		} else {
-			if s != good {
-				t.Errorf("source: %v expected: %v got: %v", bad, good, s)
-			}
-		}
+	assertMap(t, testcases, FlagsSafe|FlagRemoveDotSegments)
+}
+
+func TestStandardCasesAddTrailingSlash(t *testing.T) {
+	testcases := map[string]string{
+		"http://test.example?": "http://test.example/", //with trailing /
 	}
+
+	assertMap(t, testcases, FlagsSafe|FlagAddTrailingSlash)
 }
 
 func TestOctalIP(t *testing.T) {
@@ -78,16 +74,7 @@ func TestOctalIP(t *testing.T) {
 		"http://USER:pass@0102.0146.07.0223../": "http://USER:pass@66.102.7.147../", //ip octal encoding
 	}
 
-	for bad, good := range testcases {
-		s, e := NormalizeURLString(bad, FlagsSafe|FlagDecodeOctalHost)
-		if e != nil {
-			t.Errorf("%s normalizing %v to %v", e.Error(), bad, good)
-		} else {
-			if s != good {
-				t.Errorf("source: %v expected: %v got: %v", bad, good, s)
-			}
-		}
-	}
+	assertMap(t, testcases, FlagsSafe|FlagDecodeOctalHost)
 }
 
 func TestDWORDIP(t *testing.T) {
@@ -98,16 +85,7 @@ func TestDWORDIP(t *testing.T) {
 		"http://USER:pass@1113982867../": "http://USER:pass@66.102.7.147../", //ip dword encoding
 	}
 
-	for bad, good := range testcases {
-		s, e := NormalizeURLString(bad, FlagsSafe|FlagDecodeDWORDHost)
-		if e != nil {
-			t.Errorf("%s normalizing %v to %v", e.Error(), bad, good)
-		} else {
-			if s != good {
-				t.Errorf("source: %v expected: %v got: %v", bad, good, s)
-			}
-		}
-	}
+	assertMap(t, testcases, FlagsSafe|FlagDecodeDWORDHost)
 }
 
 func TestHexIP(t *testing.T) {
@@ -118,16 +96,7 @@ func TestHexIP(t *testing.T) {
 		"http://USER:pass@0x42660793../": "http://USER:pass@66.102.7.147../", //ip hex encoding
 	}
 
-	for bad, good := range testcases {
-		s, e := NormalizeURLString(bad, FlagsSafe|FlagDecodeHexHost)
-		if e != nil {
-			t.Errorf("%s normalizing %v to %v", e.Error(), bad, good)
-		} else {
-			if s != good {
-				t.Errorf("source: %v expected: %v got: %v", bad, good, s)
-			}
-		}
-	}
+	assertMap(t, testcases, FlagsSafe|FlagDecodeHexHost)
 }
 
 func TestUnnecessaryHostDots(t *testing.T) {
@@ -138,16 +107,7 @@ func TestUnnecessaryHostDots(t *testing.T) {
 		"http://www.example.com./":           "http://www.example.com/",
 	}
 
-	for bad, good := range testcases {
-		s, e := NormalizeURLString(bad, FlagsSafe|FlagRemoveUnnecessaryHostDots)
-		if e != nil {
-			t.Errorf("%s normalizing %v to %v", e.Error(), bad, good)
-		} else {
-			if s != good {
-				t.Errorf("source: %v expected: %v got: %v", bad, good, s)
-			}
-		}
-	}
+	assertMap(t, testcases, FlagsSafe|FlagRemoveUnnecessaryHostDots)
 }
 
 func TestEmptyPort(t *testing.T) {
@@ -156,16 +116,7 @@ func TestEmptyPort(t *testing.T) {
 		"http://www.src.ca:":                       "http://www.src.ca",                       //empty port
 	}
 
-	for bad, good := range testcases {
-		s, e := NormalizeURLString(bad, FlagsSafe|FlagRemoveEmptyPortSeparator)
-		if e != nil {
-			t.Errorf("%s normalizing %v to %v", e.Error(), bad, good)
-		} else {
-			if s != good {
-				t.Errorf("source: %v expected: %v got: %v", bad, good, s)
-			}
-		}
-	}
+	assertMap(t, testcases, FlagsSafe|FlagRemoveEmptyPortSeparator)
 }
 
 // This tests normalization to a unicode representation
@@ -178,32 +129,19 @@ func TestEmptyPort(t *testing.T) {
 func xTestUrlnorm(t *testing.T) {
 	testcases := map[string]string{
 		"http://test.example/?a=%e3%82%82%26": "http://test.example/?a=\xe3\x82\x82%26", //should return a unicode character
+		"http://s.xn--q-bga.de/":              "http://s.q\xc3\xa9.de/",                 //should be in idna format
+		"http://XBLA\u306eXbox.com":           "http://xbla\xe3\x81\xaexbox.com/",       //test utf8 and unicode
+		"http://xn--q-bga.XBLA\u306eXbox.com": "http://q\xc3\xa9.//test idna + utf8 domainxbla\xe3\x81\xaexbox.com",
 
-		"http://s.xn--q-bga.de/": "http://s.q\xc3\xa9.de/", //should be in idna format
-		"http://test.example/?":  "http://test.example/",   //no trailing ?
-		"http://test.example?":   "http://test.example/",   //with trailing /
-		"http://a.COM/path/?b&a": "http://a.com/path/?b&a",
-		//test utf8 and unicode
-		"http://XBLA\u306eXbox.com": "http://xbla\xe3\x81\xaexbox.com/",
-		//test idna + utf8 domain
-		"http://xn--q-bga.XBLA\u306eXbox.com":                                                                                     "http://q\xc3\xa9.xbla\xe3\x81\xaexbox.com",
 		"http://ja.wikipedia.org/wiki/%E3%82%AD%E3%83%A3%E3%82%BF%E3%83%94%E3%83%A9%E3%83%BC%E3%82%B8%E3%83%A3%E3%83%91%E3%83%B3": "http://ja.wikipedia.org/wiki/\xe3\x82\xad\xe3\x83\xa3\xe3\x82\xbf\xe3\x83\x94\xe3\x83\xa9\xe3\x83\xbc\xe3\x82\xb8\xe3\x83\xa3\xe3\x83\x91\xe3\x83\xb3",
-		"http://test.example/\xe3\x82\xad":                                                                                        "http://test.example/\xe3\x82\xad",
-		//check that %23 (#) is not escaped where it shouldn"t be
-		"http://test.example/?p=%23val#test-%23-val%25":                                 "http://test.example/?p=%23val#test-%23-val%25",
+
+		"http://test.example/\xe3\x82\xad":              "http://test.example/\xe3\x82\xad",
+		"http://test.example/?p=%23val#test-%23-val%25": "http://test.example/?p=%23val#test-%23-val%25", //check that %23 (#) is not escaped where it shouldn"t be
+
 		"http://test.domain/I%C3%B1t%C3%ABrn%C3%A2ti%C3%B4n%EF%BF%BDliz%C3%A6ti%C3%B8n": "http://test.domain/I\xc3\xb1t\xc3\xabrn\xc3\xa2ti\xc3\xb4n\xef\xbf\xbdliz\xc3\xa6ti\xc3\xb8n",
 	}
 
-	for bad, good := range testcases {
-		s, e := NormalizeURLString(bad, FlagsSafe|FlagRemoveDotSegments)
-		if e != nil {
-			t.Errorf("%s normalizing %v to %v", e.Error(), bad, good)
-		} else {
-			if s != good {
-				t.Errorf("source: %v expected: %v got: %v", bad, good, s)
-			}
-		}
-	}
+	assertMap(t, testcases, FlagsSafe|FlagRemoveDotSegments)
 }
 
 func TestSlashes(t *testing.T) {
@@ -233,14 +171,5 @@ func TestSlashes(t *testing.T) {
 		"http://test.example/foo///bar//":             "http://test.example/foo/bar/",
 	}
 
-	for bad, good := range testcases {
-		s, e := NormalizeURLString(bad, FlagsSafe|FlagRemoveDotSegments|FlagRemoveDuplicateSlashes)
-		if e != nil {
-			t.Errorf("%s normalizing %v to %v", e.Error(), bad, good)
-		} else {
-			if s != good {
-				t.Errorf("from: %v expected: %v got: %v", bad, good, s)
-			}
-		}
-	}
+	assertMap(t, testcases, FlagsSafe|FlagRemoveDotSegments|FlagRemoveDuplicateSlashes)
 }

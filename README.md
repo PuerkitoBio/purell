@@ -90,9 +90,9 @@ And with `FlagsUnsafe`:
 
 ## TODOs
 
-*    Try to make jehiah's tests pass (more exactly, support IDNA domains, better escaping). For now theses tests are commented out.
+*    Try to make jehiah's tests pass (more exactly, support IDNA domains/utf8/unicode encoding/escaping). For now theses tests are commented out.
 *    What if the source URL does not encode invalid characters? Parsing the string in a URL type automatically encodes some of them, though not all, it would seem.
-*    Add a class/default instance to allow specifying custom directory index names?
+*    Add a class/default instance to allow specifying custom directory index names? At the moment, removing directory index removes `(^|/)((?:default|index)\.\w{1,4})$`.
 
 ## Thanks / Contributions
 
