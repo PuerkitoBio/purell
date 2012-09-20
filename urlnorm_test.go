@@ -54,7 +54,7 @@ func TestUrlnorm(t *testing.T) {
 	}
 	
 	for bad, good := range testcases {
-		s, e := NormalizeUrlString(bad, FlagsSafe | FlagRemoveDotSegments);
+		s, e := NormalizeURLString(bad, FlagsSafe | FlagRemoveDotSegments);
 		if e != nil {
 			log.Printf("%s normalizing %v to %v", e.Error(), bad, good)
 			t.Fail()
@@ -95,7 +95,7 @@ func TestSlashes(t *testing.T) {
 	}
 
 	for bad, good := range testcases {
-		s, e := NormalizeUrlString(bad, FlagsSafe | FlagRemoveDotSegments);
+		s, e := NormalizeURLString(bad, FlagsSafe | FlagRemoveDotSegments);
 		if e != nil {
 			log.Printf("%s normalizing %v to %v", e.Error(), bad, good)
 			t.Fail()
