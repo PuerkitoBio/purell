@@ -1,9 +1,48 @@
 package purell
 
 import (
-	"log"
 	"testing"
 )
+
+// Test cases merged from PR #1
+// Originally from https://github.com/jehiah/urlnorm/blob/master/test_urlnorm.py
+
+func TestIPv6(t *testing.T) {
+	testcases := map[string]string{
+		"http://[2001:db8:1f70::999:de8:7648:6e8]/test": "http://[2001:db8:1f70::999:de8:7648:6e8]/test", // ipv6 address
+		"http://[::ffff:192.168.1.1]/test":              "http://[::ffff:192.168.1.1]/test",              //ipv4 address in ipv6 notation
+		"http://[::ffff:192.168.1.1]:80/test":           "http://[::ffff:192.168.1.1]/test",              //ipv4 address in ipv6 notation
+		"htTps://[::fFff:192.168.1.1]:443/test":         "https://[::ffff:192.168.1.1]/test",             //ipv4 address in ipv6 notation
+	}
+
+	for bad, good := range testcases {
+		s, e := NormalizeURLString(bad, FlagsSafe|FlagRemoveDotSegments)
+		if e != nil {
+			t.Errorf("%s normalizing %v to %v", e.Error(), bad, good)
+		} else {
+			if s != good {
+				t.Errorf("source: %v expected: %v got: %v", bad, good, s)
+			}
+		}
+	}
+}
+
+func TestFtp(t *testing.T) {
+	testcases := map[string]string{
+		"ftp://user:pass@ftp.foo.net/foo/bar": "ftp://user:pass@ftp.foo.net/foo/bar",
+	}
+
+	for bad, good := range testcases {
+		s, e := NormalizeURLString(bad, FlagsSafe|FlagRemoveDotSegments)
+		if e != nil {
+			t.Errorf("%s normalizing %v to %v", e.Error(), bad, good)
+		} else {
+			if s != good {
+				t.Errorf("source: %v expected: %v got: %v", bad, good, s)
+			}
+		}
+	}
+}
 
 // This tests normalization to a unicode representation
 // precent escapes for unreserved values are unescaped to their unicode value
@@ -13,7 +52,6 @@ import (
 // spaces are converted to '+' (perhaphs controversial)
 // http://code.google.com/p/google-url/ probably is another good reference for this approach
 func TestUrlnorm(t *testing.T) {
-	// from https://github.com/jehiah/urlnorm/blob/master/test_urlnorm.py
 	testcases := map[string]string{
 		"http://1113982867/":                       "http://66.102.7.147/",                    //ip dword encoding
 		"http://www.thedraymin.co.uk:/main/?p=308": "http://www.thedraymin.co.uk/main/?p=308", //empty port
@@ -23,7 +61,6 @@ func TestUrlnorm(t *testing.T) {
 		"http://www.foo.com.:81/foo":               "http://www.foo.com:81/foo",
 		"http://www.foo.com/%7ebar":                "http://www.foo.com/~bar",
 		"http://www.foo.com/%7Ebar":                "http://www.foo.com/~bar",
-		"ftp://user:pass@ftp.foo.net/foo/bar":      "ftp://user:pass@ftp.foo.net/foo/bar",
 		"http://USER:pass@www.Example.COM/foo/bar": "http://USER:pass@www.example.com/foo/bar",
 		"http://www.example.com./":                 "http://www.example.com/",
 		"http://test.example/?a=%26&b=1":           "http://test.example/?a=%26&b=1",         //should not un-encode the & that is part of a parameter value
@@ -46,22 +83,16 @@ func TestUrlnorm(t *testing.T) {
 		"http://test.example/%25/?p=%20val%20%25":                                       "http://test.example/%25/?p=%20val%20%25",
 		"http://test.domain/I%C3%B1t%C3%ABrn%C3%A2ti%C3%B4n%EF%BF%BDliz%C3%A6ti%C3%B8n": "http://test.domain/I\xc3\xb1t\xc3\xabrn\xc3\xa2ti\xc3\xb4n\xef\xbf\xbdliz\xc3\xa6ti\xc3\xb8n",
 		//check that spaces are collated to "+"
-		"http://test.example/path/with a%20space+/":     "http://test.example/path/with%20a%20space+/",
-		"http://[2001:db8:1f70::999:de8:7648:6e8]/test": "http://[2001:db8:1f70::999:de8:7648:6e8]/test", // ipv6 address
-		"http://[::ffff:192.168.1.1]/test":              "http://[::ffff:192.168.1.1]/test",              //ipv4 address in ipv6 notation
-		"http://[::ffff:192.168.1.1]:80/test":           "http://[::ffff:192.168.1.1]/test",              //ipv4 address in ipv6 notation
-		"htTps://[::fFff:192.168.1.1]:443/test":         "https://[::ffff:192.168.1.1]/test",             //ipv4 address in ipv6 notation
+		"http://test.example/path/with a%20space+/": "http://test.example/path/with%20a%20space+/",
 	}
 
 	for bad, good := range testcases {
 		s, e := NormalizeURLString(bad, FlagsSafe|FlagRemoveDotSegments)
 		if e != nil {
-			log.Printf("%s normalizing %v to %v", e.Error(), bad, good)
-			t.Fail()
+			t.Errorf("%s normalizing %v to %v", e.Error(), bad, good)
 		} else {
 			if s != good {
-				log.Printf("expected: %v got: %v", good, s)
-				t.Fail()
+				t.Errorf("source: %v expected: %v got: %v", bad, good, s)
 			}
 		}
 	}
@@ -97,12 +128,10 @@ func TestSlashes(t *testing.T) {
 	for bad, good := range testcases {
 		s, e := NormalizeURLString(bad, FlagsSafe|FlagRemoveDotSegments|FlagRemoveDuplicateSlashes)
 		if e != nil {
-			log.Printf("%s normalizing %v to %v", e.Error(), bad, good)
-			t.Fail()
+			t.Errorf("%s normalizing %v to %v", e.Error(), bad, good)
 		} else {
 			if s != good {
-				log.Printf("from: %v expected: %v got: %v", bad, good, s)
-				t.Fail()
+				t.Errorf("from: %v expected: %v got: %v", bad, good, s)
 			}
 		}
 	}

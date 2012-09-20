@@ -47,6 +47,11 @@ const (
 	FlagsUnsafe NormalizationFlags = FlagsUsuallySafe | FlagRemoveDirectoryIndex | FlagRemoveFragment | FlagForceHTTP | FlagRemoveDuplicateSlashes | FlagRemoveWWW | FlagSortQuery
 )
 
+const (
+	defaultHttpPort  = ":80"
+	defaultHttpsPort = ":443"
+)
+
 // Regular expressions used by the normalizations
 var rxPort = regexp.MustCompile(`(:\d+)/?$`)
 var rxDirIndex = regexp.MustCompile(`(^|/)((?:default|index)\.\w{1,4})$`)
@@ -62,7 +67,7 @@ var flags = map[NormalizationFlags]func(*url.URL){
 	FlagRemoveDirectoryIndex:   removeDirectoryIndex,
 	FlagRemoveDotSegments:      removeDotSegments,
 	FlagRemoveFragment:         removeFragment,
-	FlagForceHTTP:              forceHTTP,
+	FlagForceHTTP:              forceHTTP, // Must be after remove default port (because https=443/http=80)
 	FlagRemoveDuplicateSlashes: removeDuplicateSlashes,
 	FlagRemoveWWW:              removeWWW,
 	FlagAddWWW:                 addWWW,
@@ -118,8 +123,9 @@ func lowercaseHost(u *url.URL) {
 
 func removeDefaultPort(u *url.URL) {
 	if len(u.Host) > 0 {
+		scheme := strings.ToLower(u.Scheme)
 		u.Host = rxPort.ReplaceAllStringFunc(u.Host, func(val string) string {
-			if val == ":80" {
+			if (scheme == "http" && val == defaultHttpPort) || (scheme == "https" && val == defaultHttpsPort) {
 				return ""
 			}
 			return val
