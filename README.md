@@ -90,7 +90,7 @@ And with `FlagsUnsafe`:
 
 ## TODOs
 
-*    Try to make jehiah's tests pass (more exactly, support DWORD/Hex/Octal encoded IPs, IDNA domains, better escaping). For now theses tests are commented out.
+*    Try to make jehiah's tests pass (more exactly, support Hex encoded IPs, IDNA domains, better escaping). For now theses tests are commented out.
 *    What if the source URL does not encode invalid characters? Parsing the string in a URL type automatically encodes some of them, though not all, it would seem.
 *    Add a class/default instance to allow specifying custom directory index names?
 

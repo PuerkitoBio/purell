@@ -70,8 +70,29 @@ func TestStandardCases(t *testing.T) {
 	}
 }
 
-func TestDWORD(t *testing.T) {
+func TestOctalIP(t *testing.T) {
 	testcases := map[string]string{
+		"http://0123.011.0.4/":                  "http://0123.011.0.4/",             //NOT octal encoding
+		"http://0102.0146.07.0223/":             "http://66.102.7.147/",             //ip octal encoding
+		"http://0102.0146.07.0223.:23/":         "http://66.102.7.147.:23/",         //ip octal encoding
+		"http://USER:pass@0102.0146.07.0223../": "http://USER:pass@66.102.7.147../", //ip octal encoding
+	}
+
+	for bad, good := range testcases {
+		s, e := NormalizeURLString(bad, FlagsSafe|FlagDecodeOctalHost)
+		if e != nil {
+			t.Errorf("%s normalizing %v to %v", e.Error(), bad, good)
+		} else {
+			if s != good {
+				t.Errorf("source: %v expected: %v got: %v", bad, good, s)
+			}
+		}
+	}
+}
+
+func TestDWORDIP(t *testing.T) {
+	testcases := map[string]string{
+		"http://123.1113982867/":         "http://123.1113982867/",           //NOT ip dword encoding
 		"http://1113982867/":             "http://66.102.7.147/",             //ip dword encoding
 		"http://1113982867.:23/":         "http://66.102.7.147.:23/",         //ip dword encoding
 		"http://USER:pass@1113982867../": "http://USER:pass@66.102.7.147../", //ip dword encoding
