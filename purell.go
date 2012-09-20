@@ -16,7 +16,7 @@ import (
 
 // A set of normalization flags determines how a URL will
 // be normalized.
-type NormalizationFlags int
+type NormalizationFlags uint
 
 const (
 	// Safe normalizations
@@ -46,6 +46,8 @@ const (
 	FlagDecodeDWORDHost
 	FlagDecodeOctalHost
 	FlagDecodeHexHost
+	FlagRemoveUnnecessaryHostDots
+	FlagRemoveEmptyPortSeparator
 
 	FlagsSafe NormalizationFlags = FlagLowercaseHost | FlagLowercaseScheme | FlagUppercaseEscapes | FlagDecodeUnnecessaryEscapes | FlagRemoveDefaultPort | FlagRemoveEmptyQuerySeparator
 
@@ -66,6 +68,8 @@ var rxDupSlashes = regexp.MustCompile(`/{2,}`)
 var rxDWORDHost = regexp.MustCompile(`^(\d+)((?:\.+)?(?:\:\d*)?)$`)
 var rxOctalHost = regexp.MustCompile(`^(0\d*)\.(0\d*)\.(0\d*)\.(0\d*)((?:\.+)?(?:\:\d*)?)$`)
 var rxHexHost = regexp.MustCompile(`^0x([0-9A-Fa-f]+)((?:\.+)?(?:\:\d*)?)$`)
+var rxHostDots = regexp.MustCompile(`^(.+?)(:\d+)?$`)
+var rxEmptyPort = regexp.MustCompile(`:+$`)
 
 // Map of flags to implementation function.
 // FlagDecodeUnnecessaryEscapes has no action, since it is done automatically
@@ -87,31 +91,35 @@ var flagsOrder = []NormalizationFlags{
 	FlagDecodeDWORDHost,
 	FlagDecodeOctalHost,
 	FlagDecodeHexHost,
+	FlagRemoveUnnecessaryHostDots,
+	FlagRemoveEmptyPortSeparator,
 	FlagRemoveTrailingSlash, // These two (add/remove trailing slash) must be last
 	FlagAddTrailingSlash,
 }
 
 // ... and then the map, where order is unimportant
 var flags = map[NormalizationFlags]func(*url.URL){
-	FlagLowercaseScheme:        lowercaseScheme,
-	FlagLowercaseHost:          lowercaseHost,
-	FlagRemoveDefaultPort:      removeDefaultPort,
-	FlagRemoveDirectoryIndex:   removeDirectoryIndex,
-	FlagRemoveDotSegments:      removeDotSegments,
-	FlagRemoveFragment:         removeFragment,
-	FlagForceHTTP:              forceHTTP,
-	FlagRemoveDuplicateSlashes: removeDuplicateSlashes,
-	FlagRemoveWWW:              removeWWW,
-	FlagAddWWW:                 addWWW,
-	FlagSortQuery:              sortQuery,
-	FlagDecodeDWORDHost:        decodeDWORDHost,
-	FlagDecodeOctalHost:        decodeOctalHost,
-	FlagDecodeHexHost:          decodeHexHost,
-	FlagRemoveTrailingSlash:    removeTrailingSlash,
-	FlagAddTrailingSlash:       addTrailingSlash,
+	FlagLowercaseScheme:           lowercaseScheme,
+	FlagLowercaseHost:             lowercaseHost,
+	FlagRemoveDefaultPort:         removeDefaultPort,
+	FlagRemoveDirectoryIndex:      removeDirectoryIndex,
+	FlagRemoveDotSegments:         removeDotSegments,
+	FlagRemoveFragment:            removeFragment,
+	FlagForceHTTP:                 forceHTTP,
+	FlagRemoveDuplicateSlashes:    removeDuplicateSlashes,
+	FlagRemoveWWW:                 removeWWW,
+	FlagAddWWW:                    addWWW,
+	FlagSortQuery:                 sortQuery,
+	FlagDecodeDWORDHost:           decodeDWORDHost,
+	FlagDecodeOctalHost:           decodeOctalHost,
+	FlagDecodeHexHost:             decodeHexHost,
+	FlagRemoveUnnecessaryHostDots: removeUnncessaryHostDots,
+	FlagRemoveEmptyPortSeparator:  removeEmptyPortSeparator,
+	FlagRemoveTrailingSlash:       removeTrailingSlash,
+	FlagAddTrailingSlash:          addTrailingSlash,
 }
 
-// MustNormalizeURLStringLString returns the normalized string, and panics if an error occurs.
+// MustNormalizeURLString returns the normalized string, and panics if an error occurs.
 // It takes an URL string as input, as well as the normalization flags.
 func MustNormalizeURLString(u string, f NormalizationFlags) string {
 	if parsed, e := url.Parse(u); e != nil {
@@ -310,5 +318,23 @@ func decodeHexHost(u *url.URL) {
 			// The rest is the same as decoding a DWORD host
 			decodeDWORDHost(u)
 		}
+	}
+}
+
+func removeUnncessaryHostDots(u *url.URL) {
+	if len(u.Host) > 0 {
+		if matches := rxHostDots.FindStringSubmatch(u.Host); len(matches) > 1 {
+			// Trim the leading and trailing dots
+			u.Host = strings.Trim(matches[1], ".")
+			if len(matches) > 2 {
+				u.Host += matches[2]
+			}
+		}
+	}
+}
+
+func removeEmptyPortSeparator(u *url.URL) {
+	if len(u.Host) > 0 {
+		u.Host = rxEmptyPort.ReplaceAllString(u.Host, "")
 	}
 }

@@ -130,6 +130,44 @@ func TestHexIP(t *testing.T) {
 	}
 }
 
+func TestUnnecessaryHostDots(t *testing.T) {
+	testcases := map[string]string{
+		"http://.www.foo.com../foo/bar.html": "http://www.foo.com/foo/bar.html",
+		"http://www.foo.com./foo/bar.html":   "http://www.foo.com/foo/bar.html",
+		"http://www.foo.com.:81/foo":         "http://www.foo.com:81/foo",
+		"http://www.example.com./":           "http://www.example.com/",
+	}
+
+	for bad, good := range testcases {
+		s, e := NormalizeURLString(bad, FlagsSafe|FlagRemoveUnnecessaryHostDots)
+		if e != nil {
+			t.Errorf("%s normalizing %v to %v", e.Error(), bad, good)
+		} else {
+			if s != good {
+				t.Errorf("source: %v expected: %v got: %v", bad, good, s)
+			}
+		}
+	}
+}
+
+func TestEmptyPort(t *testing.T) {
+	testcases := map[string]string{
+		"http://www.thedraymin.co.uk:/main/?p=308": "http://www.thedraymin.co.uk/main/?p=308", //empty port
+		"http://www.src.ca:":                       "http://www.src.ca",                       //empty port
+	}
+
+	for bad, good := range testcases {
+		s, e := NormalizeURLString(bad, FlagsSafe|FlagRemoveEmptyPortSeparator)
+		if e != nil {
+			t.Errorf("%s normalizing %v to %v", e.Error(), bad, good)
+		} else {
+			if s != good {
+				t.Errorf("source: %v expected: %v got: %v", bad, good, s)
+			}
+		}
+	}
+}
+
 // This tests normalization to a unicode representation
 // precent escapes for unreserved values are unescaped to their unicode value
 // tests normalization to idna domains
@@ -139,11 +177,7 @@ func TestHexIP(t *testing.T) {
 // http://code.google.com/p/google-url/ probably is another good reference for this approach
 func xTestUrlnorm(t *testing.T) {
 	testcases := map[string]string{
-		"http://www.thedraymin.co.uk:/main/?p=308": "http://www.thedraymin.co.uk/main/?p=308", //empty port
-		"http://www.foo.com./foo/bar.html":         "http://www.foo.com/foo/bar.html",
-		"http://www.foo.com.:81/foo":               "http://www.foo.com:81/foo",
-		"http://www.example.com./":                 "http://www.example.com/",
-		"http://test.example/?a=%e3%82%82%26":      "http://test.example/?a=\xe3\x82\x82%26", //should return a unicode character
+		"http://test.example/?a=%e3%82%82%26": "http://test.example/?a=\xe3\x82\x82%26", //should return a unicode character
 
 		"http://s.xn--q-bga.de/": "http://s.q\xc3\xa9.de/", //should be in idna format
 		"http://test.example/?":  "http://test.example/",   //no trailing ?
