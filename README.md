@@ -4,8 +4,7 @@ Purell is a tiny Go library to normalize URLs. It returns a pure URL. Pure-ell. 
 
 Based on the [wikipedia paper][wiki] and the [RFC 3986 document][rfc].
 
-[![Build Status](https://secure.travis-ci.org/PuerkitoBio/purell.png)](http://travis-ci.org/PuerkitoBio/purell)
-
+[![build status](https://secure.travis-ci.org/PuerkitoBio/purell.png)](http://travis-ci.org/PuerkitoBio/purell)
 
 ## Install
 
@@ -69,8 +68,6 @@ Some things to note:
 
 *    The *remove unused query string parameters* and *remove default query parameters* are also not implemented, since this is a very case-specific normalization, and it is quite trivial to do with an URL object.
 
-*    Thanks to rogpeppe for some tips on Go's naming conventions!
-
 ### Safe vs Usually Safe vs Unsafe
 
 Purell allows you to control the level of risk you take while normalizing an URL. You can aggressively normalize, play it totally safe, or anything in between.
@@ -95,6 +92,11 @@ And with `FlagsUnsafe`:
 
 *    What if the source URL does not encode invalid characters? Parsing the string in a URL type automatically encodes some of them, though not all, it would seem.
 *    Add a class/default instance to allow specifying custom directory index names?
+
+## Thanks / Contributions
+
+@rogpeppe
+@jehiah
 
 ## License
 
