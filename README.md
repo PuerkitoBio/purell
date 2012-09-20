@@ -20,8 +20,8 @@ import (
   "net/url"
 )
 
-func ExampleNormalizeUrlString() {
-  if normalized, err := NormalizeUrlString("hTTp://someWEBsite.com:80/Amazing%3f/url/",
+func ExampleNormalizeURLString() {
+  if normalized, err := NormalizeURLString("hTTp://someWEBsite.com:80/Amazing%3f/url/",
     FlagLowercaseScheme|FlagLowercaseHost|FlagUppercaseEscapes); err != nil {
     panic(err)
   } else {
@@ -30,19 +30,19 @@ func ExampleNormalizeUrlString() {
   // Output: http://somewebsite.com:80/Amazing%3F/url/
 }
 
-func ExampleMustNormalizeUrlString() {
-  normalized := MustNormalizeUrlString("hTTpS://someWEBsite.com:80/Amazing%fa/url/",
+func ExampleMustNormalizeURLString() {
+  normalized := MustNormalizeURLString("hTTpS://someWEBsite.com:80/Amazing%fa/url/",
     FlagsUnsafe)
   fmt.Print(normalized)
 
   // Output: http://somewebsite.com/Amazing%FA/url
 }
 
-func ExampleNormalizeUrl() {
+func ExampleNormalizeURL() {
   if u, err := url.Parse("Http://SomeUrl.com:8080/a/b/.././c///g?c=3&a=1&b=9&c=0#target"); err != nil {
     panic(err)
   } else {
-    normalized := NormalizeUrl(u, FlagsUsuallySafe|FlagRemoveDuplicateSlashes|FlagRemoveFragment)
+    normalized := NormalizeURL(u, FlagsUsuallySafe|FlagRemoveDuplicateSlashes|FlagRemoveFragment)
     fmt.Print(normalized)
   }
 
@@ -65,6 +65,8 @@ Some things to note:
 *    The *replace IP with domain name* normalization (`http://208.77.188.166/ → http://www.example.com/`) is obviously not possible for a library without making some network requests. This is not implemented in purell.
 
 *    The *remove unused query string parameters* and *remove default query parameters* are also not implemented, since this is a very case-specific normalization, and it is quite trivial to do with an URL object.
+
+*    Thanks to rogpeppe for some tips on Go's naming conventions!
 
 ### Safe vs Usually Safe vs Unsafe
 

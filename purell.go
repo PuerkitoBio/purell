@@ -13,6 +13,8 @@ import (
 	"strings"
 )
 
+// A set of normalization flags determines how a URL will
+// be normalized.
 type NormalizationFlags int
 
 const (
@@ -32,17 +34,17 @@ const (
 	// Unsafe normalizations
 	FlagRemoveDirectoryIndex
 	FlagRemoveFragment
-	FlagForceHttp
+	FlagForceHTTP
 	FlagRemoveDuplicateSlashes
-	FlagRemoveWww // Should choose one or the other (in add-remove www)
-	FlagAddWww
+	FlagRemoveWWW // Should choose one or the other (in add-remove www)
+	FlagAddWWW
 	FlagSortQuery
 
 	FlagsSafe NormalizationFlags = FlagLowercaseHost | FlagLowercaseScheme | FlagUppercaseEscapes | FlagDecodeUnnecessaryEscapes | FlagRemoveDefaultPort | FlagRemoveEmptyQuerySeparator
 
 	FlagsUsuallySafe NormalizationFlags = FlagsSafe | FlagRemoveTrailingSlash | FlagRemoveDotSegments
 
-	FlagsUnsafe NormalizationFlags = FlagsUsuallySafe | FlagRemoveDirectoryIndex | FlagRemoveFragment | FlagForceHttp | FlagRemoveDuplicateSlashes | FlagRemoveWww | FlagSortQuery
+	FlagsUnsafe NormalizationFlags = FlagsUsuallySafe | FlagRemoveDirectoryIndex | FlagRemoveFragment | FlagForceHTTP | FlagRemoveDuplicateSlashes | FlagRemoveWWW | FlagSortQuery
 )
 
 // Regular expressions used by the normalizations
@@ -62,38 +64,38 @@ var flags = map[NormalizationFlags]func(*url.URL){
 	FlagAddTrailingSlash:       addTrailingSlash,
 	FlagRemoveDotSegments:      removeDotSegments,
 	FlagRemoveFragment:         removeFragment,
-	FlagForceHttp:              forceHttp,
+	FlagForceHTTP:              forceHTTP,
 	FlagRemoveDuplicateSlashes: removeDuplicateSlashes,
-	FlagRemoveWww:              removeWww,
-	FlagAddWww:                 addWww,
+	FlagRemoveWWW:              removeWWW,
+	FlagAddWWW:                 addWWW,
 	FlagSortQuery:              sortQuery,
 }
 
-// MustNormalizeUrlString() returns the normalized string, and panics if an error occurs.
+// MustNormalizeURLString returns the normalized string, and panics if an error occurs.
 // It takes an URL string as input, as well as the normalization flags.
-func MustNormalizeUrlString(u string, f NormalizationFlags) string {
+func MustNormalizeURLString(u string, f NormalizationFlags) string {
 	if parsed, e := url.Parse(u); e != nil {
 		panic(e)
 	} else {
-		return NormalizeUrl(parsed, f)
+		return NormalizeURL(parsed, f)
 	}
 	panic("Unreachable code.")
 }
 
-// NormalizeUrlString() returns the normalized string, or an error if it can't be parsed into an URL object.
+// NormalizeURLString returns the normalized string, or an error if it can't be parsed into an URL object.
 // It takes an URL string as input, as well as the normalization flags.
-func NormalizeUrlString(u string, f NormalizationFlags) (string, error) {
+func NormalizeURLString(u string, f NormalizationFlags) (string, error) {
 	if parsed, e := url.Parse(u); e != nil {
 		return "", e
 	} else {
-		return NormalizeUrl(parsed, f), nil
+		return NormalizeURL(parsed, f), nil
 	}
 	panic("Unreachable code.")
 }
 
-// NormalizeUrl() returns the normalized string.
+// NormalizeURL returns the normalized string.
 // It takes a parsed URL object as input, as well as the normalization flags.
-func NormalizeUrl(u *url.URL, f NormalizationFlags) string {
+func NormalizeURL(u *url.URL, f NormalizationFlags) string {
 	for k, v := range flags {
 		if f&k == k {
 			v(u)
@@ -173,7 +175,7 @@ func removeFragment(u *url.URL) {
 	u.Fragment = ""
 }
 
-func forceHttp(u *url.URL) {
+func forceHTTP(u *url.URL) {
 	if strings.ToLower(u.Scheme) == "https" {
 		u.Scheme = "http"
 	}
@@ -185,13 +187,13 @@ func removeDuplicateSlashes(u *url.URL) {
 	}
 }
 
-func removeWww(u *url.URL) {
+func removeWWW(u *url.URL) {
 	if len(u.Host) > 0 && strings.HasPrefix(strings.ToLower(u.Host), "www.") {
 		u.Host = u.Host[4:]
 	}
 }
 
-func addWww(u *url.URL) {
+func addWWW(u *url.URL) {
 	if len(u.Host) > 0 && !strings.HasPrefix(strings.ToLower(u.Host), "www.") {
 		u.Host = "www." + u.Host
 	}
