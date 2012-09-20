@@ -10,7 +10,7 @@ import (
 	"net/url"
 	"regexp"
 	"sort"
-	//"strconv"
+	"strconv"
 	"strings"
 )
 
@@ -43,7 +43,7 @@ const (
 
 	// Normalizations not in the wikipedia article, required to cover tests cases
 	// submitted by jehiah (not included in any convenience set at the moment)
-	//FlagDecodeDWORDHost
+	FlagDecodeDWORDHost
 
 	FlagsSafe NormalizationFlags = FlagLowercaseHost | FlagLowercaseScheme | FlagUppercaseEscapes | FlagDecodeUnnecessaryEscapes | FlagRemoveDefaultPort | FlagRemoveEmptyQuerySeparator
 
@@ -80,7 +80,7 @@ var flagsOrder = []NormalizationFlags{
 	FlagRemoveWWW,
 	FlagAddWWW,
 	FlagSortQuery,
-	//FlagDecodeDWORDHost,
+	FlagDecodeDWORDHost,
 	FlagRemoveTrailingSlash, // These two (add/remove trailing slash) must be last
 	FlagAddTrailingSlash,
 }
@@ -98,9 +98,9 @@ var flags = map[NormalizationFlags]func(*url.URL){
 	FlagRemoveWWW:              removeWWW,
 	FlagAddWWW:                 addWWW,
 	FlagSortQuery:              sortQuery,
-	//FlagDecodeDWORDHost:        decodeDWORDHost,
-	FlagRemoveTrailingSlash: removeTrailingSlash,
-	FlagAddTrailingSlash:    addTrailingSlash,
+	FlagDecodeDWORDHost:        decodeDWORDHost,
+	FlagRemoveTrailingSlash:    removeTrailingSlash,
+	FlagAddTrailingSlash:       addTrailingSlash,
 }
 
 // MustNormalizeURLStringLString returns the normalized string, and panics if an error occurs.
@@ -268,8 +268,13 @@ func sortQuery(u *url.URL) {
 func decodeDWORDHost(u *url.URL) {
 	if len(u.Host) > 0 {
 		if matches := rxDWORDHost.FindStringSubmatch(u.Host); len(matches) > 1 {
-			//dword, _ := strconv.ParseInt(matches[1], 10, 0)
-			// TODO : Decode.
+			var parts [4]int64
+
+			dword, _ := strconv.ParseInt(matches[1], 10, 0)
+			for i, shift := range []uint{24, 16, 8, 0} {
+				parts[i] = dword >> shift & 0xFF
+			}
+			u.Host = fmt.Sprintf("%d.%d.%d.%d%s", parts[0], parts[1], parts[2], parts[3], matches[2])
 		}
 	}
 }

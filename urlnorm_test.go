@@ -70,7 +70,7 @@ func TestStandardCases(t *testing.T) {
 	}
 }
 
-func xTestDWORD(t *testing.T) {
+func TestDWORD(t *testing.T) {
 	testcases := map[string]string{
 		"http://1113982867/":             "http://66.102.7.147/",             //ip dword encoding
 		"http://1113982867.:23/":         "http://66.102.7.147.:23/",         //ip dword encoding
@@ -78,7 +78,7 @@ func xTestDWORD(t *testing.T) {
 	}
 
 	for bad, good := range testcases {
-		s, e := NormalizeURLString(bad, FlagsSafe) //TODO : |FlagDecodeDWORDHost)
+		s, e := NormalizeURLString(bad, FlagsSafe|FlagDecodeDWORDHost)
 		if e != nil {
 			t.Errorf("%s normalizing %v to %v", e.Error(), bad, good)
 		} else {
