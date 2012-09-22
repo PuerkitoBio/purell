@@ -34,7 +34,7 @@ func ExampleNormalizeURLString() {
 
 func ExampleMustNormalizeURLString() {
   normalized := MustNormalizeURLString("hTTpS://someWEBsite.com:443/Amazing%fa/url/",
-    FlagsUnsafe)
+    FlagsUnsafeGreedy)
   fmt.Print(normalized)
 
   // Output: http://somewebsite.com/Amazing%FA/url
@@ -44,7 +44,7 @@ func ExampleNormalizeURL() {
   if u, err := url.Parse("Http://SomeUrl.com:8080/a/b/.././c///g?c=3&a=1&b=9&c=0#target"); err != nil {
     panic(err)
   } else {
-    normalized := NormalizeURL(u, FlagsUsuallySafe|FlagRemoveDuplicateSlashes|FlagRemoveFragment)
+    normalized := NormalizeURL(u, FlagsUsuallySafeGreedy|FlagRemoveDuplicateSlashes|FlagRemoveFragment)
     fmt.Print(normalized)
   }
 
@@ -54,13 +54,67 @@ func ExampleNormalizeURL() {
 
 ## API
 
-For convenience, the set of flags `FlagsSafe`, `FlagsUsuallySafe` and `FlagsUnsafe` are provided for the similarly grouped normalizations on [wikipedia's URL normalization page][wiki]. You can add (using the bitwise OR `|` operator) or remove (using the bitwise AND NOT `&^` operator) individual flags from the sets if required.
+As seen in the examples above, purell offers three methods, `NormalizeURLString(string, NormalizationFlags) (string, error)`, `MustNormalizeURLString(string, NormalizationFlags) (string)` and `NormalizeURL(*url.URL, NormalizationFlags) (string)`. They all normalize the provided URL based on the specified flags. Here are the available flags:
 
-The [full godoc reference][godoc] is available on gopkgdoc.
+```go
+const (
+  // Safe normalizations
+  FlagLowercaseScheme           NormalizationFlags = 1 << iota // HTTP://host -> http://host
+  FlagLowercaseHost                                            // http://HOST -> http://host
+  FlagUppercaseEscapes                                         // http://host/t%ef -> http://host/t%EF
+  FlagDecodeUnnecessaryEscapes                                 // http://host/t%41 -> http://host/tA
+  FlagRemoveDefaultPort                                        // http://host:80 -> http://host
+  FlagRemoveEmptyQuerySeparator                                // http://host/path? -> http://host/path
+
+  // Usually safe normalizations
+  FlagRemoveTrailingSlash // http://host/path/ -> http://host/path
+  FlagAddTrailingSlash    // http://host/path -> http://host/path/ (should choose only one of these add/remove trailing slash flags)
+  FlagRemoveDotSegments   // http://host/path/./a/b/../c -> http://host/path/a/c
+
+  // Unsafe normalizations
+  FlagRemoveDirectoryIndex   // http://host/path/index.html -> http://host/path/
+  FlagRemoveFragment         // http://host/path#fragment -> http://host/path
+  FlagForceHTTP              // https://host -> http://host
+  FlagRemoveDuplicateSlashes // http://host/path//a///b -> http://host/path/a/b
+  FlagRemoveWWW              // http://www.host/ -> http://host/
+  FlagAddWWW                 // http://host/ -> http://www.host/ (should choose only one of these add/remove WWW flags)
+  FlagSortQuery              // http://host/path?c=3&b=2&a=1&b=1 -> http://host/path?a=1&b=1&b=2&c=3
+
+  // Normalizations not in the wikipedia article, required to cover tests cases
+  // submitted by jehiah (not included in any convenience set at the moment)
+  FlagDecodeDWORDHost           // http://1113982867 -> http://66.102.7.147
+  FlagDecodeOctalHost           // http://0102.0146.07.0223 -> http://66.102.7.147
+  FlagDecodeHexHost             // http://0x42660793 -> http://66.102.7.147
+  FlagRemoveUnnecessaryHostDots // http://.host../path -> http://host/path
+  FlagRemoveEmptyPortSeparator  // http://host:/path -> http://host/path
+
+  // Convenience set of safe normalizations
+  FlagsSafe NormalizationFlags = FlagLowercaseHost | FlagLowercaseScheme | FlagUppercaseEscapes | FlagDecodeUnnecessaryEscapes | FlagRemoveDefaultPort | FlagRemoveEmptyQuerySeparator
+
+  // For convenience sets, "greedy" uses the "remove trailing slash" and "remove www. prefix" flags,
+  // while "non-greedy" uses the "add (or keep) the trailing slash" and "add www. prefix".
+
+  // Convenience set of usually safe normalizations (includes FlagsSafe)
+  FlagsUsuallySafeGreedy    NormalizationFlags = FlagsSafe | FlagRemoveTrailingSlash | FlagRemoveDotSegments
+  FlagsUsuallySafeNonGreedy NormalizationFlags = FlagsSafe | FlagAddTrailingSlash | FlagRemoveDotSegments
+
+  // Convenience set of unsafe normalizations (includes FlagsUsuallySafe)
+  FlagsUnsafeGreedy    NormalizationFlags = FlagsUsuallySafeGreedy | FlagRemoveDirectoryIndex | FlagRemoveFragment | FlagForceHTTP | FlagRemoveDuplicateSlashes | FlagRemoveWWW | FlagSortQuery
+  FlagsUnsafeNonGreedy NormalizationFlags = FlagsUsuallySafeNonGreedy | FlagRemoveDirectoryIndex | FlagRemoveFragment | FlagForceHTTP | FlagRemoveDuplicateSlashes | FlagAddWWW | FlagSortQuery
+
+  // Convenience set of all available flags
+  FlagsAllGreedy    = FlagsUnsafeGreedy | FlagDecodeDWORDHost | FlagDecodeOctalHost | FlagDecodeHexHost | FlagRemoveUnnecessaryHostDots | FlagRemoveEmptyPortSeparator
+  FlagsAllNonGreedy = FlagsUnsafeNonGreedy | FlagDecodeDWORDHost | FlagDecodeOctalHost | FlagDecodeHexHost | FlagRemoveUnnecessaryHostDots | FlagRemoveEmptyPortSeparator
+)
+```
+
+For convenience, the set of flags `FlagsSafe`, `FlagsUsuallySafe[Greedy|NonGreedy]`, `FlagsUnsafe[Greedy|NonGreedy]` and `FlagsAll[Greedy|NonGreedy]` are provided for the similarly grouped normalizations on [wikipedia's URL normalization page][wiki]. You can add (using the bitwise OR `|` operator) or remove (using the bitwise AND NOT `&^` operator) individual flags from the sets if required, to build your own custom set.
+
+The [full godoc reference is available on gopkgdoc][godoc].
 
 Some things to note:
 
-*    `FlagDecodeUnnecessaryEscapes`, `FlagUppercaseEscapes` and `FlagRemoveEmptyQuerySeparator` are always implicitly set, because internally, the URL string is parsed as an URL object, which automatically decodes unnecessary escapes, uppercases necessary ones, and removes empty query separators (an unnecessary `?` at the end of the url). So this operation cannot **not** be done. For this reason, `FlagRemoveEmptyQuerySeparator` has been included in the `FlagsSafe` convenience constant, instead of `FlagsUnsafe`, where Wikipedia puts it (strangely?).
+*    `FlagDecodeUnnecessaryEscapes`, `FlagUppercaseEscapes` and `FlagRemoveEmptyQuerySeparator` are always implicitly set, because internally, the URL string is parsed as an URL object, which automatically decodes unnecessary escapes, uppercases necessary ones, and removes empty query separators (an unnecessary `?` at the end of the url). So this operation cannot **not** be done. For this reason, `FlagRemoveEmptyQuerySeparator` (as well as the other two) has been included in the `FlagsSafe` convenience set, instead of `FlagsUnsafe`, where Wikipedia puts it (strangely?).
 
 *    When the `NormalizeUrl` function is used (passing an URL object), this source URL object is modified (that is, after the call, the URL object will be modified to reflect the normalization).
 
@@ -80,11 +134,11 @@ Normalizing with the `FlagsSafe` gives:
 
 `https://www.root.com/toto/tE%1F///a/./b/../c/?z=3&w=2&a=4&w=1#invalid`
 
-With the `FlagsUsuallySafe`:
+With the `FlagsUsuallySafeGreedy`:
 
 `https://www.root.com/toto/tE%1F///a/c?z=3&w=2&a=4&w=1#invalid`
 
-And with `FlagsUnsafe`:
+And with `FlagsUnsafeGreedy`:
 
 `http://root.com/toto/tE%1F/a/c?a=4&w=1&w=2&z=3`
 

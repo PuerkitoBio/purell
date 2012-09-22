@@ -156,7 +156,7 @@ func TestRemoveDotSegments2(t *testing.T) {
 }
 
 func TestUsuallySafe(t *testing.T) {
-	if s, e := NormalizeURLString("HTTP://www.SRC.ca:80/to%1ato%8b%ee/./c/d/../OKnow%41%42%43%7e/?a=b#test", FlagsUsuallySafe); e != nil {
+	if s, e := NormalizeURLString("HTTP://www.SRC.ca:80/to%1ato%8b%ee/./c/d/../OKnow%41%42%43%7e/?a=b#test", FlagsUsuallySafeGreedy); e != nil {
 		t.Errorf("Got error %s", e.Error())
 	} else {
 		assertResult("http://www.src.ca/to%1Ato%8B%EE/c/OKnowABC~?a=b#test", s, t)
@@ -252,7 +252,7 @@ func TestRemoveEmptyQuerySeparator(t *testing.T) {
 }
 
 func TestUnsafe(t *testing.T) {
-	if s, e := NormalizeURLString("HTTPS://www.RooT.com/toto/t%45%1f///a/./b/../c/?z=3&w=2&a=4&w=1#invalid", FlagsUnsafe); e != nil {
+	if s, e := NormalizeURLString("HTTPS://www.RooT.com/toto/t%45%1f///a/./b/../c/?z=3&w=2&a=4&w=1#invalid", FlagsUnsafeGreedy); e != nil {
 		t.Errorf("Got error %s", e.Error())
 	} else {
 		assertResult("http://root.com/toto/tE%1F/a/c?a=4&w=1&w=2&z=3", s, t)
@@ -268,7 +268,7 @@ func TestSafe2(t *testing.T) {
 }
 
 func TestUsuallySafe2(t *testing.T) {
-	if s, e := NormalizeURLString("HTTPS://www.RooT.com/toto/t%45%1f///a/./b/../c/?z=3&w=2&a=4&w=1#invalid", FlagsUsuallySafe); e != nil {
+	if s, e := NormalizeURLString("HTTPS://www.RooT.com/toto/t%45%1f///a/./b/../c/?z=3&w=2&a=4&w=1#invalid", FlagsUsuallySafeGreedy); e != nil {
 		t.Errorf("Got error %s", e.Error())
 	} else {
 		assertResult("https://www.root.com/toto/tE%1F///a/c?z=3&w=2&a=4&w=1#invalid", s, t)
@@ -277,7 +277,7 @@ func TestUsuallySafe2(t *testing.T) {
 
 func TestSourceModified(t *testing.T) {
 	u, _ := url.Parse("HTTPS://www.RooT.com/toto/t%45%1f///a/./b/../c/?z=3&w=2&a=4&w=1#invalid")
-	NormalizeURL(u, FlagsUnsafe)
+	NormalizeURL(u, FlagsUnsafeGreedy)
 	if u.Host != "http" {
 		t.Logf("Expected source URL to have host http, found %s.", u.Host)
 	}

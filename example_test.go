@@ -17,7 +17,7 @@ func ExampleNormalizeURLString() {
 
 func ExampleMustNormalizeURLString() {
 	normalized := MustNormalizeURLString("hTTpS://someWEBsite.com:443/Amazing%fa/url/",
-		FlagsUnsafe)
+		FlagsUnsafeGreedy)
 	fmt.Print(normalized)
 
 	// Output: http://somewebsite.com/Amazing%FA/url
@@ -27,7 +27,7 @@ func ExampleNormalizeURL() {
 	if u, err := url.Parse("Http://SomeUrl.com:8080/a/b/.././c///g?c=3&a=1&b=9&c=0#target"); err != nil {
 		panic(err)
 	} else {
-		normalized := NormalizeURL(u, FlagsUsuallySafe|FlagRemoveDuplicateSlashes|FlagRemoveFragment)
+		normalized := NormalizeURL(u, FlagsUsuallySafeGreedy|FlagRemoveDuplicateSlashes|FlagRemoveFragment)
 		fmt.Print(normalized)
 	}
 
