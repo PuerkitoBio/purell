@@ -1,7 +1,7 @@
 package purell
 
 import (
-	//"fmt"
+	"fmt"
 	"net/url"
 	"testing"
 )
