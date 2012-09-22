@@ -123,6 +123,7 @@ Some things to note:
     -    %5F -> _
     -    %61-%7A -> abcdefghijklmnopqrstuvwxyz
     -    %7E -> ~
+    -    Oddly, when the test runs on Travis-ci, it fails because more escapes are decoded than on my machine, so it is either machine/OS-dependent or they run a different Go version than me (I run 1.0.2). To avoid a failing build banner on GitHub, I commented-out this specific test.
 
 *    When the `NormalizeUrl` function is used (passing an URL object), this source URL object is modified (that is, after the call, the URL object will be modified to reflect the normalization).
 
