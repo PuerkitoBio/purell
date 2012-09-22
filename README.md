@@ -114,9 +114,11 @@ The [full godoc reference is available on gopkgdoc][godoc].
 
 Some things to note:
 
-*    `FlagDecodeUnnecessaryEscapes`, `FlagUppercaseEscapes` and `FlagRemoveEmptyQuerySeparator` are always implicitly set, because internally, the URL string is parsed as an URL object, which automatically decodes unnecessary escapes, uppercases necessary ones, and removes empty query separators (an unnecessary `?` at the end of the url). So this operation cannot **not** be done. For this reason, `FlagRemoveEmptyQuerySeparator` (as well as the other two) has been included in the `FlagsSafe` convenience set, instead of `FlagsUnsafe`, where Wikipedia puts it (strangely?).
+*    `FlagDecodeUnnecessaryEscapes`, `FlagEncodeNecessaryEscapes`, `FlagUppercaseEscapes` and `FlagRemoveEmptyQuerySeparator` are always implicitly set, because internally, the URL string is parsed as an URL object, which automatically decodes unnecessary escapes, uppercases and encodes necessary ones, and removes empty query separators (an unnecessary `?` at the end of the url). So this operation cannot **not** be done. For this reason, `FlagRemoveEmptyQuerySeparator` (as well as the other three) has been included in the `FlagsSafe` convenience set, instead of `FlagsUnsafe`, where Wikipedia puts it (strangely?).
 
 *    The `FlagDecodeUnnecessaryEscapes` decodes the following escapes (*from -> to*):
+    -    %24 -> $
+    -    %26 -> &
     -    %2B-%3B -> +,-./0123456789:;
     -    %3D -> =
     -    %40-%5A -> @ABCDEFGHIJKLMNOPQRSTUVWXYZ
@@ -125,7 +127,8 @@ Some things to note:
     -    %7E -> ~
     -    Oddly, when the test runs on Travis-ci, it fails because more escapes are decoded than on my machine, so it is either machine/OS-dependent or they run a different Go version than me (I run 1.0.2). To avoid a failing build banner on GitHub, I commented-out this specific test.
 
-*    When the `NormalizeUrl` function is used (passing an URL object), this source URL object is modified (that is, after the call, the URL object will be modified to reflect the normalization).
+
+*    When the `NormalizeURL` function is used (passing an URL object), this source URL object is modified (that is, after the call, the URL object will be modified to reflect the normalization).
 
 *    The *replace IP with domain name* normalization (`http://208.77.188.166/ → http://www.example.com/`) is obviously not possible for a library without making some network requests. This is not implemented in purell.
 

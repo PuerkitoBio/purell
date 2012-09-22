@@ -24,6 +24,7 @@ const (
 	FlagLowercaseHost                                            // http://HOST -> http://host
 	FlagUppercaseEscapes                                         // http://host/t%ef -> http://host/t%EF
 	FlagDecodeUnnecessaryEscapes                                 // http://host/t%41 -> http://host/tA
+	FlagEncodeNecessaryEscapes                                   // http://host/!"#$ -> http://host/%21%22#$
 	FlagRemoveDefaultPort                                        // http://host:80 -> http://host
 	FlagRemoveEmptyQuerySeparator                                // http://host/path? -> http://host/path
 
@@ -50,7 +51,7 @@ const (
 	FlagRemoveEmptyPortSeparator  // http://host:/path -> http://host/path
 
 	// Convenience set of safe normalizations
-	FlagsSafe NormalizationFlags = FlagLowercaseHost | FlagLowercaseScheme | FlagUppercaseEscapes | FlagDecodeUnnecessaryEscapes | FlagRemoveDefaultPort | FlagRemoveEmptyQuerySeparator
+	FlagsSafe NormalizationFlags = FlagLowercaseHost | FlagLowercaseScheme | FlagUppercaseEscapes | FlagDecodeUnnecessaryEscapes | FlagEncodeNecessaryEscapes | FlagRemoveDefaultPort | FlagRemoveEmptyQuerySeparator
 
 	// For convenience sets, "greedy" uses the "remove trailing slash" and "remove www. prefix" flags,
 	// while "non-greedy" uses the "add (or keep) the trailing slash" and "add www. prefix".
