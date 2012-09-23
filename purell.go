@@ -43,7 +43,7 @@ const (
 	FlagSortQuery              // http://host/path?c=3&b=2&a=1&b=1 -> http://host/path?a=1&b=1&b=2&c=3
 
 	// Normalizations not in the wikipedia article, required to cover tests cases
-	// submitted by jehiah (not included in any convenience set at the moment)
+	// submitted by jehiah
 	FlagDecodeDWORDHost           // http://1113982867 -> http://66.102.7.147
 	FlagDecodeOctalHost           // http://0102.0146.07.0223 -> http://66.102.7.147
 	FlagDecodeHexHost             // http://0x42660793 -> http://66.102.7.147
