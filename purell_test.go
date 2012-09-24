@@ -319,6 +319,6 @@ func TestEncodeNecessaryEscapesAll(t *testing.T) {
 }
 
 func TestGoVersion(t *testing.T) {
-	assertResult("go1.0.2", runtime.Version(), t)
+	assertResult("go1.0.3", runtime.Version(), t)
 }
 */
