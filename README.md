@@ -10,6 +10,11 @@ Based on the [wikipedia paper][wiki] and the [RFC 3986 document][rfc].
 
 `go get github.com/PuerkitoBio/purell`
 
+## Changelog
+
+*    **v0.2.0** : Add benchmarks, IDN support.
+*    **v0.1.0** : Initial release.
+
 ## Examples
 
 From `example_test.go` (note that in your code, you would import "github.com/PuerkitoBio/purell", and would prefix references to its methods and constants with "purell."):
@@ -125,7 +130,7 @@ Some things to note:
     -    %5F -> _
     -    %61-%7A -> abcdefghijklmnopqrstuvwxyz
     -    %7E -> ~
-    -    When the test runs on Travis-ci, it fails because more escapes are decoded than on my machine, so it is either machine/OS-dependent or it is because they run a different Go version (**which they do, they run go1 while I run go1.0.2** so this is very likely the cause). To avoid a failing build banner on GitHub, I commented-out these specific tests (`TestDecodeUnnecessaryEscapesAll()`, `TestEncodeNecessaryEscapesAll()`, `TestGoVersion()`).
+    -    When the test runs on Travis-ci, it fails because more escapes are decoded than on my machine, so it is either machine/OS-dependent or it is because they run a different Go version (**which they do, they run go1 while I run go1.0.3** so this is very likely the cause). To avoid a failing build banner on GitHub, I commented-out these specific tests (`TestDecodeUnnecessaryEscapesAll()`, `TestEncodeNecessaryEscapesAll()`, `TestGoVersion()`).
 
 
 *    When the `NormalizeURL` function is used (passing an URL object), this source URL object is modified (that is, after the call, the URL object will be modified to reflect the normalization).
