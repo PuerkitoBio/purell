@@ -12,7 +12,7 @@ Based on the [wikipedia paper][wiki] and the [RFC 3986 document][rfc].
 
 ## Changelog
 
-*    **v0.2.0** : Add benchmarks, IDN support.
+*    **v0.2.0** : *In development* Add benchmarks, IDN support.
 *    **v0.1.0** : Initial release.
 
 ## Examples
