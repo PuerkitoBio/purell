@@ -176,4 +176,4 @@ The [BSD 3-Clause license][bsd].
 [bsd]: http://opensource.org/licenses/BSD-3-Clause
 [wiki]: http://en.wikipedia.org/wiki/URL_normalization
 [rfc]: http://tools.ietf.org/html/rfc3986#section-6
-[godoc]: http://go.pkgdoc.org/github.com/puerkitobio/purell
+[godoc]: http://go.pkgdoc.org/github.com/PuerkitoBio/purell
