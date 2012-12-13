@@ -190,18 +190,26 @@ func removeDefaultPort(u *url.URL) {
 }
 
 func removeTrailingSlash(u *url.URL) {
-	if l := len(u.Path); l > 0 && strings.HasSuffix(u.Path, "/") {
-		u.Path = u.Path[:l-1]
-	} else if l = len(u.Host); l > 0 && strings.HasSuffix(u.Host, "/") {
-		u.Host = u.Host[:l-1]
+	if l := len(u.Path); l > 0 {
+		if strings.HasSuffix(u.Path, "/") {
+			u.Path = u.Path[:l-1]
+		}
+	} else if l = len(u.Host); l > 0 {
+		if strings.HasSuffix(u.Host, "/") {
+			u.Host = u.Host[:l-1]
+		}
 	}
 }
 
 func addTrailingSlash(u *url.URL) {
-	if l := len(u.Path); l > 0 && !strings.HasSuffix(u.Path, "/") {
-		u.Path += "/"
-	} else if l = len(u.Host); l > 0 && !strings.HasSuffix(u.Host, "/") {
-		u.Host += "/"
+	if l := len(u.Path); l > 0 {
+		if !strings.HasSuffix(u.Path, "/") {
+			u.Path += "/"
+		}
+	} else if l = len(u.Host); l > 0 {
+		if !strings.HasSuffix(u.Host, "/") {
+			u.Host += "/"
+		}
 	}
 }
 

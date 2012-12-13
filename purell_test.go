@@ -286,6 +286,15 @@ func TestSourceModified(t *testing.T) {
 	assertResult("http://root.com/toto/tE%1F/a/c?a=4&w=1&w=2&z=3", u.String(), t)
 }
 
+func TestAddTrailingSlashBug(t *testing.T) {
+	s := "http://src.ca/"
+	if u, e := NormalizeURLString(s, FlagsAllNonGreedy); e != nil {
+		t.Fatal(e)
+	} else {
+		assertResult("http://www.src.ca/", u, t)
+	}
+}
+
 /*
 // Commented-out because on Travis-ci's servers, it decodes more escapes than on my machine!
 func TestDecodeUnnecessaryEscapesAll(t *testing.T) {
