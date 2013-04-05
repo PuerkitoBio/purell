@@ -44,33 +44,3 @@ func xTestUrlnorm(t *testing.T) {
 
 	assertMap(t, testcases, FlagsSafe|FlagRemoveDotSegments)
 }
-
-func TestSlashes(t *testing.T) {
-	// some taken from RFC1808, rfc3986
-	testcases := map[string]string{
-		"http://test.example/foo/bar/.":               "http://test.example/foo/bar/",
-		"http://test.example/foo/bar/./":              "http://test.example/foo/bar/",
-		"http://test.example/foo/bar/..":              "http://test.example/foo/",
-		"http://test.example/foo/bar/../":             "http://test.example/foo/",
-		"http://test.example/foo/bar/../baz":          "http://test.example/foo/baz",
-		"http://test.example/foo/bar/../..":           "http://test.example/",
-		"http://test.example/foo/bar/../../":          "http://test.example/",
-		"http://test.example/foo/bar/../../baz":       "http://test.example/baz",
-		"http://test.example/foo/bar/../../../baz":    "http://test.example/baz",
-		"http://test.example/foo/bar/../../../../baz": "http://test.example/baz",
-		"http://test.example/./foo":                   "http://test.example/foo",
-		"http://test.example/../foo":                  "http://test.example/foo",
-		"http://test.example/foo.":                    "http://test.example/foo.",
-		"http://test.example/.foo":                    "http://test.example/.foo",
-		"http://test.example/foo..":                   "http://test.example/foo..",
-		"http://test.example/..foo":                   "http://test.example/..foo",
-		"http://test.example/./../foo":                "http://test.example/foo",
-		"http://test.example/./foo/.":                 "http://test.example/foo/",
-		"http://test.example/foo/./bar":               "http://test.example/foo/bar",
-		"http://test.example/foo/../bar":              "http://test.example/bar",
-		"http://test.example/foo//":                   "http://test.example/foo/",
-		"http://test.example/foo///bar//":             "http://test.example/foo/bar/",
-	}
-
-	assertMap(t, testcases, FlagsSafe|FlagRemoveDotSegments|FlagRemoveDuplicateSlashes)
-}
