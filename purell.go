@@ -20,7 +20,7 @@ type NormalizationFlags uint
 
 const (
 	// Safe normalizations
-	FlagLowercaseScheme           NormalizationFlags = 1 << iota // HTTP://host -> http://host
+	FlagLowercaseScheme           NormalizationFlags = 1 << iota // HTTP://host -> http://host, applied by default in Go1.1
 	FlagLowercaseHost                                            // http://HOST -> http://host
 	FlagUppercaseEscapes                                         // http://host/t%ef -> http://host/t%EF
 	FlagDecodeUnnecessaryEscapes                                 // http://host/t%41 -> http://host/tA

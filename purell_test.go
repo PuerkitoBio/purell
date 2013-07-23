@@ -34,7 +34,7 @@ var (
 			"LowerHost",
 			"HTTP://www.SRC.ca/",
 			FlagLowercaseHost,
-			"HTTP://www.src.ca/",
+			"http://www.src.ca/", // Since Go1.1, scheme is automatically lowercased
 			false,
 		},
 		&testCase{
@@ -55,21 +55,21 @@ var (
 			"RemoveDefaultPort",
 			"HTTP://www.SRC.ca:80/",
 			FlagRemoveDefaultPort,
-			"HTTP://www.SRC.ca/",
+			"http://www.SRC.ca/", // Since Go1.1, scheme is automatically lowercased
 			false,
 		},
 		&testCase{
 			"RemoveDefaultPort2",
 			"HTTP://www.SRC.ca:80",
 			FlagRemoveDefaultPort,
-			"HTTP://www.SRC.ca",
+			"http://www.SRC.ca", // Since Go1.1, scheme is automatically lowercased
 			false,
 		},
 		&testCase{
 			"RemoveDefaultPort3",
 			"HTTP://www.SRC.ca:8080",
 			FlagRemoveDefaultPort,
-			"HTTP://www.SRC.ca:8080",
+			"http://www.SRC.ca:8080", // Since Go1.1, scheme is automatically lowercased
 			false,
 		},
 		&testCase{
@@ -90,56 +90,56 @@ var (
 			"RemoveTrailingSlash",
 			"HTTP://www.SRC.ca:80/",
 			FlagRemoveTrailingSlash,
-			"HTTP://www.SRC.ca:80",
+			"http://www.SRC.ca:80", // Since Go1.1, scheme is automatically lowercased
 			false,
 		},
 		&testCase{
 			"RemoveTrailingSlash2",
 			"HTTP://www.SRC.ca:80/toto/titi/",
 			FlagRemoveTrailingSlash,
-			"HTTP://www.SRC.ca:80/toto/titi",
+			"http://www.SRC.ca:80/toto/titi", // Since Go1.1, scheme is automatically lowercased
 			false,
 		},
 		&testCase{
 			"RemoveTrailingSlash3",
 			"HTTP://www.SRC.ca:80/toto/titi/fin/?a=1",
 			FlagRemoveTrailingSlash,
-			"HTTP://www.SRC.ca:80/toto/titi/fin?a=1",
+			"http://www.SRC.ca:80/toto/titi/fin?a=1", // Since Go1.1, scheme is automatically lowercased
 			false,
 		},
 		&testCase{
 			"AddTrailingSlash",
 			"HTTP://www.SRC.ca:80",
 			FlagAddTrailingSlash,
-			"HTTP://www.SRC.ca:80/",
+			"http://www.SRC.ca:80/", // Since Go1.1, scheme is automatically lowercased
 			false,
 		},
 		&testCase{
 			"AddTrailingSlash2",
 			"HTTP://www.SRC.ca:80/toto/titi.html",
 			FlagAddTrailingSlash,
-			"HTTP://www.SRC.ca:80/toto/titi.html/",
+			"http://www.SRC.ca:80/toto/titi.html/", // Since Go1.1, scheme is automatically lowercased
 			false,
 		},
 		&testCase{
 			"AddTrailingSlash3",
 			"HTTP://www.SRC.ca:80/toto/titi/fin?a=1",
 			FlagAddTrailingSlash,
-			"HTTP://www.SRC.ca:80/toto/titi/fin/?a=1",
+			"http://www.SRC.ca:80/toto/titi/fin/?a=1", // Since Go1.1, scheme is automatically lowercased
 			false,
 		},
 		&testCase{
 			"RemoveDotSegments",
 			"HTTP://root/a/b/./../../c/",
 			FlagRemoveDotSegments,
-			"HTTP://root/c/",
+			"http://root/c/", // Since Go1.1, scheme is automatically lowercased
 			false,
 		},
 		&testCase{
 			"RemoveDotSegments2",
 			"HTTP://root/../a/b/./../c/../d",
 			FlagRemoveDotSegments,
-			"HTTP://root/a/d",
+			"http://root/a/d", // Since Go1.1, scheme is automatically lowercased
 			false,
 		},
 		&testCase{
@@ -153,21 +153,21 @@ var (
 			"RemoveDirectoryIndex",
 			"HTTP://root/a/b/c/default.aspx",
 			FlagRemoveDirectoryIndex,
-			"HTTP://root/a/b/c/",
+			"http://root/a/b/c/", // Since Go1.1, scheme is automatically lowercased
 			false,
 		},
 		&testCase{
 			"RemoveDirectoryIndex2",
 			"HTTP://root/a/b/c/default#a=b",
 			FlagRemoveDirectoryIndex,
-			"HTTP://root/a/b/c/default#a=b",
+			"http://root/a/b/c/default#a=b", // Since Go1.1, scheme is automatically lowercased
 			false,
 		},
 		&testCase{
 			"RemoveFragment",
 			"HTTP://root/a/b/c/default#toto=tata",
 			FlagRemoveFragment,
-			"HTTP://root/a/b/c/default",
+			"http://root/a/b/c/default", // Since Go1.1, scheme is automatically lowercased
 			false,
 		},
 		&testCase{
