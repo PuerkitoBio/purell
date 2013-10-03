@@ -6,8 +6,6 @@ Based on the [wikipedia paper][wiki] and the [RFC 3986 document][rfc].
 
 [![build status](https://secure.travis-ci.org/PuerkitoBio/purell.png)](http://travis-ci.org/PuerkitoBio/purell)
 
-Note that at this moment, travis still uses Go1.0.3, and the Go stdlibs changed some behaviour between 1.0.3 and Go1.1. My tests have been updated to pass with Go1.1, so until Travis updates to the latest release of Go, it will display **fail**...
-
 ## Install
 
 `go get github.com/PuerkitoBio/purell`
