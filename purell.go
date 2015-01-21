@@ -231,7 +231,7 @@ func removeDotSegments(u *url.URL) {
 		}
 		// Special case if host does not end with / and new path does not begin with /
 		u.Path = strings.Join(dotFree, "/")
-		if !strings.HasSuffix(u.Host, "/") && !strings.HasPrefix(u.Path, "/") {
+		if u.Host != "" && !strings.HasSuffix(u.Host, "/") && !strings.HasPrefix(u.Path, "/") {
 			u.Path = "/" + u.Path
 		}
 		// Special case if the last segment was a dot, make sure the path ends with a slash
