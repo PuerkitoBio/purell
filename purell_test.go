@@ -653,6 +653,13 @@ var (
 			"http://test.example/foo/bar/",
 			false,
 		},
+		&testCase{
+			"Relative",
+			"foo/bar",
+			FlagsAllGreedy,
+			"foo/bar",
+			false,
+		},
 		/*&testCase{
 			"UrlNorm-5",
 			"http://ja.wikipedia.org/wiki/%E3%82%AD%E3%83%A3%E3%82%BF%E3%83%94%E3%83%A9%E3%83%BC%E3%82%B8%E3%83%A3%E3%83%91%E3%83%B3",
