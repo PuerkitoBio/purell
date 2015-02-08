@@ -684,7 +684,7 @@ var (
 		&testCase{
 			"Relative-4",
 			"www.youtube.com",
-			FlagsSafe | FlagRemoveDotSegments | FlagRemoveDuplicateSlashes,
+			FlagsUsuallySafeGreedy,
 			"www.youtube.com",
 			false,
 		},
