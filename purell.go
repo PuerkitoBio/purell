@@ -12,6 +12,8 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+
+	"github.com/opennota/urlesc"
 )
 
 // A set of normalization flags determines how a URL will
@@ -162,7 +164,7 @@ func NormalizeURL(u *url.URL, f NormalizationFlags) string {
 			flags[k](u)
 		}
 	}
-	return u.String()
+	return urlesc.Escape(u)
 }
 
 func lowercaseScheme(u *url.URL) {
@@ -293,7 +295,7 @@ func sortQuery(u *url.URL) {
 				if buf.Len() > 0 {
 					buf.WriteRune('&')
 				}
-				buf.WriteString(fmt.Sprintf("%s=%s", k, url.QueryEscape(v)))
+				buf.WriteString(fmt.Sprintf("%s=%s", k, urlesc.QueryEscape(v)))
 			}
 		}
 
