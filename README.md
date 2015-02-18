@@ -12,7 +12,8 @@ Based on the [wikipedia paper][wiki] and the [RFC 3986 document][rfc].
 
 ## Changelog
 
-*    **v0.2.0** : *In development* Add benchmarks, IDN support.
+*    **2015-02-08** : Add fix for relative paths issue ([PR #5][pr5]) and add fix for unnecessary encoding of reserved characters ([see issue #7][iss7]).
+*    **v0.2.0** : Add benchmarks, Attempt IDN support.
 *    **v0.1.0** : Initial release.
 
 ## Examples
@@ -63,53 +64,54 @@ As seen in the examples above, purell offers three methods, `NormalizeURLString(
 
 ```go
 const (
-  // Safe normalizations
-  FlagLowercaseScheme           NormalizationFlags = 1 << iota // HTTP://host -> http://host
-  FlagLowercaseHost                                            // http://HOST -> http://host
-  FlagUppercaseEscapes                                         // http://host/t%ef -> http://host/t%EF
-  FlagDecodeUnnecessaryEscapes                                 // http://host/t%41 -> http://host/tA
-  FlagRemoveDefaultPort                                        // http://host:80 -> http://host
-  FlagRemoveEmptyQuerySeparator                                // http://host/path? -> http://host/path
+	// Safe normalizations
+	FlagLowercaseScheme           NormalizationFlags = 1 << iota // HTTP://host -> http://host, applied by default in Go1.1
+	FlagLowercaseHost                                            // http://HOST -> http://host
+	FlagUppercaseEscapes                                         // http://host/t%ef -> http://host/t%EF
+	FlagDecodeUnnecessaryEscapes                                 // http://host/t%41 -> http://host/tA
+	FlagEncodeNecessaryEscapes                                   // http://host/!"#$ -> http://host/%21%22#$
+	FlagRemoveDefaultPort                                        // http://host:80 -> http://host
+	FlagRemoveEmptyQuerySeparator                                // http://host/path? -> http://host/path
 
-  // Usually safe normalizations
-  FlagRemoveTrailingSlash // http://host/path/ -> http://host/path
-  FlagAddTrailingSlash    // http://host/path -> http://host/path/ (should choose only one of these add/remove trailing slash flags)
-  FlagRemoveDotSegments   // http://host/path/./a/b/../c -> http://host/path/a/c
+	// Usually safe normalizations
+	FlagRemoveTrailingSlash // http://host/path/ -> http://host/path
+	FlagAddTrailingSlash    // http://host/path -> http://host/path/ (should choose only one of these add/remove trailing slash flags)
+	FlagRemoveDotSegments   // http://host/path/./a/b/../c -> http://host/path/a/c
 
-  // Unsafe normalizations
-  FlagRemoveDirectoryIndex   // http://host/path/index.html -> http://host/path/
-  FlagRemoveFragment         // http://host/path#fragment -> http://host/path
-  FlagForceHTTP              // https://host -> http://host
-  FlagRemoveDuplicateSlashes // http://host/path//a///b -> http://host/path/a/b
-  FlagRemoveWWW              // http://www.host/ -> http://host/
-  FlagAddWWW                 // http://host/ -> http://www.host/ (should choose only one of these add/remove WWW flags)
-  FlagSortQuery              // http://host/path?c=3&b=2&a=1&b=1 -> http://host/path?a=1&b=1&b=2&c=3
+	// Unsafe normalizations
+	FlagRemoveDirectoryIndex   // http://host/path/index.html -> http://host/path/
+	FlagRemoveFragment         // http://host/path#fragment -> http://host/path
+	FlagForceHTTP              // https://host -> http://host
+	FlagRemoveDuplicateSlashes // http://host/path//a///b -> http://host/path/a/b
+	FlagRemoveWWW              // http://www.host/ -> http://host/
+	FlagAddWWW                 // http://host/ -> http://www.host/ (should choose only one of these add/remove WWW flags)
+	FlagSortQuery              // http://host/path?c=3&b=2&a=1&b=1 -> http://host/path?a=1&b=1&b=2&c=3
 
-  // Normalizations not in the wikipedia article, required to cover tests cases
-  // submitted by jehiah
-  FlagDecodeDWORDHost           // http://1113982867 -> http://66.102.7.147
-  FlagDecodeOctalHost           // http://0102.0146.07.0223 -> http://66.102.7.147
-  FlagDecodeHexHost             // http://0x42660793 -> http://66.102.7.147
-  FlagRemoveUnnecessaryHostDots // http://.host../path -> http://host/path
-  FlagRemoveEmptyPortSeparator  // http://host:/path -> http://host/path
+	// Normalizations not in the wikipedia article, required to cover tests cases
+	// submitted by jehiah
+	FlagDecodeDWORDHost           // http://1113982867 -> http://66.102.7.147
+	FlagDecodeOctalHost           // http://0102.0146.07.0223 -> http://66.102.7.147
+	FlagDecodeHexHost             // http://0x42660793 -> http://66.102.7.147
+	FlagRemoveUnnecessaryHostDots // http://.host../path -> http://host/path
+	FlagRemoveEmptyPortSeparator  // http://host:/path -> http://host/path
 
-  // Convenience set of safe normalizations
-  FlagsSafe NormalizationFlags = FlagLowercaseHost | FlagLowercaseScheme | FlagUppercaseEscapes | FlagDecodeUnnecessaryEscapes | FlagRemoveDefaultPort | FlagRemoveEmptyQuerySeparator
+	// Convenience set of safe normalizations
+	FlagsSafe NormalizationFlags = FlagLowercaseHost | FlagLowercaseScheme | FlagUppercaseEscapes | FlagDecodeUnnecessaryEscapes | FlagEncodeNecessaryEscapes | FlagRemoveDefaultPort | FlagRemoveEmptyQuerySeparator
 
-  // For convenience sets, "greedy" uses the "remove trailing slash" and "remove www. prefix" flags,
-  // while "non-greedy" uses the "add (or keep) the trailing slash" and "add www. prefix".
+	// For convenience sets, "greedy" uses the "remove trailing slash" and "remove www. prefix" flags,
+	// while "non-greedy" uses the "add (or keep) the trailing slash" and "add www. prefix".
 
-  // Convenience set of usually safe normalizations (includes FlagsSafe)
-  FlagsUsuallySafeGreedy    NormalizationFlags = FlagsSafe | FlagRemoveTrailingSlash | FlagRemoveDotSegments
-  FlagsUsuallySafeNonGreedy NormalizationFlags = FlagsSafe | FlagAddTrailingSlash | FlagRemoveDotSegments
+	// Convenience set of usually safe normalizations (includes FlagsSafe)
+	FlagsUsuallySafeGreedy    NormalizationFlags = FlagsSafe | FlagRemoveTrailingSlash | FlagRemoveDotSegments
+	FlagsUsuallySafeNonGreedy NormalizationFlags = FlagsSafe | FlagAddTrailingSlash | FlagRemoveDotSegments
 
-  // Convenience set of unsafe normalizations (includes FlagsUsuallySafe)
-  FlagsUnsafeGreedy    NormalizationFlags = FlagsUsuallySafeGreedy | FlagRemoveDirectoryIndex | FlagRemoveFragment | FlagForceHTTP | FlagRemoveDuplicateSlashes | FlagRemoveWWW | FlagSortQuery
-  FlagsUnsafeNonGreedy NormalizationFlags = FlagsUsuallySafeNonGreedy | FlagRemoveDirectoryIndex | FlagRemoveFragment | FlagForceHTTP | FlagRemoveDuplicateSlashes | FlagAddWWW | FlagSortQuery
+	// Convenience set of unsafe normalizations (includes FlagsUsuallySafe)
+	FlagsUnsafeGreedy    NormalizationFlags = FlagsUsuallySafeGreedy | FlagRemoveDirectoryIndex | FlagRemoveFragment | FlagForceHTTP | FlagRemoveDuplicateSlashes | FlagRemoveWWW | FlagSortQuery
+	FlagsUnsafeNonGreedy NormalizationFlags = FlagsUsuallySafeNonGreedy | FlagRemoveDirectoryIndex | FlagRemoveFragment | FlagForceHTTP | FlagRemoveDuplicateSlashes | FlagAddWWW | FlagSortQuery
 
-  // Convenience set of all available flags
-  FlagsAllGreedy    = FlagsUnsafeGreedy | FlagDecodeDWORDHost | FlagDecodeOctalHost | FlagDecodeHexHost | FlagRemoveUnnecessaryHostDots | FlagRemoveEmptyPortSeparator
-  FlagsAllNonGreedy = FlagsUnsafeNonGreedy | FlagDecodeDWORDHost | FlagDecodeOctalHost | FlagDecodeHexHost | FlagRemoveUnnecessaryHostDots | FlagRemoveEmptyPortSeparator
+	// Convenience set of all available flags
+	FlagsAllGreedy    = FlagsUnsafeGreedy | FlagDecodeDWORDHost | FlagDecodeOctalHost | FlagDecodeHexHost | FlagRemoveUnnecessaryHostDots | FlagRemoveEmptyPortSeparator
+	FlagsAllNonGreedy = FlagsUnsafeNonGreedy | FlagDecodeDWORDHost | FlagDecodeOctalHost | FlagDecodeHexHost | FlagRemoveUnnecessaryHostDots | FlagRemoveEmptyPortSeparator
 )
 ```
 
@@ -119,7 +121,7 @@ The [full godoc reference is available on gopkgdoc][godoc].
 
 Some things to note:
 
-*    `FlagDecodeUnnecessaryEscapes`, `FlagEncodeNecessaryEscapes`, `FlagUppercaseEscapes` and `FlagRemoveEmptyQuerySeparator` are always implicitly set, because internally, the URL string is parsed as an URL object, which automatically decodes unnecessary escapes, uppercases and encodes necessary ones, and removes empty query separators (an unnecessary `?` at the end of the url). So this operation cannot **not** be done. For this reason, `FlagRemoveEmptyQuerySeparator` (as well as the other three) has been included in the `FlagsSafe` convenience set, instead of `FlagsUnsafe`, where Wikipedia puts it (strangely?).
+*    `FlagDecodeUnnecessaryEscapes`, `FlagEncodeNecessaryEscapes`, `FlagUppercaseEscapes` and `FlagRemoveEmptyQuerySeparator` are always implicitly set, because internally, the URL string is parsed as an URL object, which automatically decodes unnecessary escapes, uppercases and encodes necessary ones, and removes empty query separators (an unnecessary `?` at the end of the url). So this operation cannot **not** be done. For this reason, `FlagRemoveEmptyQuerySeparator` (as well as the other three) has been included in the `FlagsSafe` convenience set, instead of `FlagsUnsafe`, where Wikipedia puts it.
 
 *    The `FlagDecodeUnnecessaryEscapes` decodes the following escapes (*from -> to*):
     -    %24 -> $
@@ -130,7 +132,6 @@ Some things to note:
     -    %5F -> _
     -    %61-%7A -> abcdefghijklmnopqrstuvwxyz
     -    %7E -> ~
-    -    When the test runs on Travis-ci, it fails because more escapes are decoded than on my machine, so it is either machine/OS-dependent or it is because they run a different Go version (**which they do, they run go1 while I run go1.0.3** so this is very likely the cause). To avoid a failing build banner on GitHub, I commented-out these specific tests (`TestDecodeUnnecessaryEscapesAll()`, `TestEncodeNecessaryEscapesAll()`, `TestGoVersion()`).
 
 
 *    When the `NormalizeURL` function is used (passing an URL object), this source URL object is modified (that is, after the call, the URL object will be modified to reflect the normalization).
@@ -168,6 +169,8 @@ And with `FlagsUnsafeGreedy`:
 
 @rogpeppe
 @jehiah
+@opennota
+@pchristopher1275
 
 ## License
 
@@ -177,3 +180,5 @@ The [BSD 3-Clause license][bsd].
 [wiki]: http://en.wikipedia.org/wiki/URL_normalization
 [rfc]: http://tools.ietf.org/html/rfc3986#section-6
 [godoc]: http://go.pkgdoc.org/github.com/PuerkitoBio/purell
+[pr5]: https://github.com/PuerkitoBio/purell/pull/5
+[iss7]: https://github.com/PuerkitoBio/purell/issues/7

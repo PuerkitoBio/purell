@@ -12,6 +12,8 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+
+	"github.com/opennota/urlesc"
 )
 
 // A set of normalization flags determines how a URL will
@@ -162,7 +164,7 @@ func NormalizeURL(u *url.URL, f NormalizationFlags) string {
 			flags[k](u)
 		}
 	}
-	return u.String()
+	return urlesc.Escape(u)
 }
 
 func lowercaseScheme(u *url.URL) {
@@ -231,7 +233,7 @@ func removeDotSegments(u *url.URL) {
 		}
 		// Special case if host does not end with / and new path does not begin with /
 		u.Path = strings.Join(dotFree, "/")
-		if !strings.HasSuffix(u.Host, "/") && !strings.HasPrefix(u.Path, "/") {
+		if u.Host != "" && !strings.HasSuffix(u.Host, "/") && !strings.HasPrefix(u.Path, "/") {
 			u.Path = "/" + u.Path
 		}
 		// Special case if the last segment was a dot, make sure the path ends with a slash
@@ -293,7 +295,7 @@ func sortQuery(u *url.URL) {
 				if buf.Len() > 0 {
 					buf.WriteRune('&')
 				}
-				buf.WriteString(fmt.Sprintf("%s=%s", k, url.QueryEscape(v)))
+				buf.WriteString(fmt.Sprintf("%s=%s", k, urlesc.QueryEscape(v)))
 			}
 		}
 
