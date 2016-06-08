@@ -5,7 +5,7 @@ go:
     - tip
 
 install:
-    - go get github.com/opennota/urlesc
+    - go get github.com/PuerkitoBio/urlesc
     - go build .
 
 script:
