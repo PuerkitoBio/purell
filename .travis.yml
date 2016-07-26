@@ -5,7 +5,8 @@ go:
     - tip
 
 install:
-    - go get github.com/PuerkitoBio/urlesc
+    - go get github.com/zenovich/urlesc
+    - go get golang.org/x/net/idna
     - go build .
 
 script:
