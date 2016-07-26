@@ -7,6 +7,7 @@ go:
 install:
     - go get github.com/zenovich/urlesc
     - go get golang.org/x/net/idna
+    - mv $GOPATH/src/github.com/zenovich/urlesc $GOPATH/src/github.com/PuerkitoBio/
     - go build .
 
 script:
