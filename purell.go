@@ -15,6 +15,8 @@ import (
 
 	"github.com/PuerkitoBio/urlesc"
 	"golang.org/x/net/idna"
+	"golang.org/x/text/secure/precis"
+	"golang.org/x/text/unicode/norm"
 )
 
 // A set of normalization flags determines how a URL will
@@ -151,7 +153,14 @@ func NormalizeURLString(u string, f NormalizationFlags) (string, error) {
 	if parsed, e := url.Parse(u); e != nil {
 		return "", e
 	} else {
-		if parsed.Host, e = idna.ToUnicode(parsed.Host); e != nil {
+		options := make([]precis.Option, 1, 3)
+		options[0] = precis.IgnoreCase
+		if f&FlagLowercaseHost == FlagLowercaseHost {
+			options = append(options, precis.FoldCase())
+		}
+		options = append(options, precis.Norm(norm.NFC))
+		profile := precis.NewFreeform(options...)
+		if parsed.Host, e = idna.ToASCII(profile.NewTransformer().String(parsed.Host)); e != nil {
 			return "", e
 		}
 		return NormalizeURL(parsed, f), nil

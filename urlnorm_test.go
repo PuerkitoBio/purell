@@ -31,9 +31,12 @@ func TestUrlnorm(t *testing.T) {
 	testcases := map[string]string{
 		"http://test.example/?a=%e3%82%82%26": "http://test.example/?a=%e3%82%82%26",
 		//"http://test.example/?a=%e3%82%82%26": "http://test.example/?a=\xe3\x82\x82%26", //should return a unicode character
-		"http://s.xn--q-bga.de/":    "http://s.q\xc3\xa9.de/",          //should be in idna format
-		"http://XBLA\u306eXbox.com": "http://xbla\xe3\x81\xaexbox.com", //test utf8 and unicode
-
+		"http://s.xn--q-bga.DE/":    "http://s.xn--q-bga.de/",       //should be in idna format
+		"http://XBLA\u306eXbox.com": "http://xn--xblaxbox-jf4g.com", //test utf8 and unicode
+		"http://президент.рф":       "http://xn--d1abbgf6aiiy.xn--p1ai",
+		"http://ПРЕЗИДЕНТ.РФ":       "http://xn--d1abbgf6aiiy.xn--p1ai",
+		"http://\u00e9.com":         "http://xn--9ca.com",
+		"http://e\u0301.com":        "http://xn--9ca.com",
 		"http://ja.wikipedia.org/wiki/%E3%82%AD%E3%83%A3%E3%82%BF%E3%83%94%E3%83%A9%E3%83%BC%E3%82%B8%E3%83%A3%E3%83%91%E3%83%B3": "http://ja.wikipedia.org/wiki/%E3%82%AD%E3%83%A3%E3%82%BF%E3%83%94%E3%83%A9%E3%83%BC%E3%82%B8%E3%83%A3%E3%83%91%E3%83%B3",
 		//"http://ja.wikipedia.org/wiki/%E3%82%AD%E3%83%A3%E3%82%BF%E3%83%94%E3%83%A9%E3%83%BC%E3%82%B8%E3%83%A3%E3%83%91%E3%83%B3": "http://ja.wikipedia.org/wiki/\xe3\x82\xad\xe3\x83\xa3\xe3\x82\xbf\xe3\x83\x94\xe3\x83\xa9\xe3\x83\xbc\xe3\x82\xb8\xe3\x83\xa3\xe3\x83\x91\xe3\x83\xb3",
 
