@@ -2,15 +2,6 @@ language: go
 
 go:
     - 1.4
+    - 1.5
+    - 1.6
     - tip
-
-install:
-    - go get github.com/zenovich/urlesc
-    - go get golang.org/x/net/idna
-    - go get golang.org/x/text/secure/precis
-    - go get golang.org/x/text/unicode/norm
-    - mv $GOPATH/src/github.com/zenovich/urlesc $GOPATH/src/github.com/PuerkitoBio/
-    - go build .
-
-script:
-    - go test -v

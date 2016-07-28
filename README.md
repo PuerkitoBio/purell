@@ -12,6 +12,7 @@ Based on the [wikipedia paper][wiki] and the [RFC 3986 document][rfc].
 
 ## Changelog
 
+*    **2016-07-27 (v1.0.0)** : Normalize IDN to ASCII (thanks to @zenovich).
 *    **2015-02-08** : Add fix for relative paths issue ([PR #5][pr5]) and add fix for unnecessary encoding of reserved characters ([see issue #7][iss7]).
 *    **v0.2.0** : Add benchmarks, Attempt IDN support.
 *    **v0.1.0** : Initial release.
@@ -162,7 +163,6 @@ And with `FlagsUnsafeGreedy`:
 
 ## TODOs
 
-*    Try to make jehiah's tests pass (more exactly, support IDNA domains/utf8/unicode encoding/escaping). For now theses tests are commented out.
 *    Add a class/default instance to allow specifying custom directory index names? At the moment, removing directory index removes `(^|/)((?:default|index)\.\w{1,4})$`.
 
 ## Thanks / Contributions
@@ -171,6 +171,7 @@ And with `FlagsUnsafeGreedy`:
 @jehiah
 @opennota
 @pchristopher1275
+@zenovich
 
 ## License
 
