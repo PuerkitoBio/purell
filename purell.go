@@ -117,24 +117,24 @@ var flagsOrder = []NormalizationFlags{
 
 // ... and then the map, where order is unimportant
 var flags = map[NormalizationFlags]func(*url.URL){
-	FlagLowercaseScheme:           lowercaseScheme,
-	FlagLowercaseHost:             lowercaseHost,
-	FlagRemoveDefaultPort:         removeDefaultPort,
-	FlagRemoveDirectoryIndex:      removeDirectoryIndex,
-	FlagRemoveDotSegments:         removeDotSegments,
-	FlagRemoveFragment:            removeFragment,
-	FlagForceHTTP:                 forceHTTP,
-	FlagRemoveDuplicateSlashes:    removeDuplicateSlashes,
-	FlagRemoveWWW:                 removeWWW,
-	FlagAddWWW:                    addWWW,
-	FlagSortQuery:                 sortQuery,
-	FlagDecodeDWORDHost:           decodeDWORDHost,
-	FlagDecodeOctalHost:           decodeOctalHost,
-	FlagDecodeHexHost:             decodeHexHost,
-	FlagRemoveUnnecessaryHostDots: removeUnncessaryHostDots,
-	FlagRemoveEmptyPortSeparator:  removeEmptyPortSeparator,
-	FlagRemoveTrailingSlash:       removeTrailingSlash,
-	FlagAddTrailingSlash:          addTrailingSlash,
+	FlagLowercaseScheme:           LowercaseScheme,
+	FlagLowercaseHost:             LowercaseHost,
+	FlagRemoveDefaultPort:         RemoveDefaultPort,
+	FlagRemoveDirectoryIndex:      RemoveDirectoryIndex,
+	FlagRemoveDotSegments:         RemoveDotSegments,
+	FlagRemoveFragment:            RemoveFragment,
+	FlagForceHTTP:                 ForceHTTP,
+	FlagRemoveDuplicateSlashes:    RemoveDuplicateSlashes,
+	FlagRemoveWWW:                 RemoveWWW,
+	FlagAddWWW:                    AddWWW,
+	FlagSortQuery:                 SortQuery,
+	FlagDecodeDWORDHost:           DecodeDWORDHost,
+	FlagDecodeOctalHost:           DecodeOctalHost,
+	FlagDecodeHexHost:             DecodeHexHost,
+	FlagRemoveUnnecessaryHostDots: RemoveUnncessaryHostDots,
+	FlagRemoveEmptyPortSeparator:  RemoveEmptyPortSeparator,
+	FlagRemoveTrailingSlash:       RemoveTrailingSlash,
+	FlagAddTrailingSlash:          AddTrailingSlash,
 }
 
 // MustNormalizeURLString returns the normalized string, and panics if an error occurs.
@@ -183,19 +183,19 @@ func NormalizeURL(u *url.URL, f NormalizationFlags) string {
 	return urlesc.Escape(u)
 }
 
-func lowercaseScheme(u *url.URL) {
+func LowercaseScheme(u *url.URL) {
 	if len(u.Scheme) > 0 {
 		u.Scheme = strings.ToLower(u.Scheme)
 	}
 }
 
-func lowercaseHost(u *url.URL) {
+func LowercaseHost(u *url.URL) {
 	if len(u.Host) > 0 {
 		u.Host = strings.ToLower(u.Host)
 	}
 }
 
-func removeDefaultPort(u *url.URL) {
+func RemoveDefaultPort(u *url.URL) {
 	if len(u.Host) > 0 {
 		scheme := strings.ToLower(u.Scheme)
 		u.Host = rxPort.ReplaceAllStringFunc(u.Host, func(val string) string {
@@ -207,7 +207,7 @@ func removeDefaultPort(u *url.URL) {
 	}
 }
 
-func removeTrailingSlash(u *url.URL) {
+func RemoveTrailingSlash(u *url.URL) {
 	if l := len(u.Path); l > 0 {
 		if strings.HasSuffix(u.Path, "/") {
 			u.Path = u.Path[:l-1]
@@ -219,7 +219,7 @@ func removeTrailingSlash(u *url.URL) {
 	}
 }
 
-func addTrailingSlash(u *url.URL) {
+func AddTrailingSlash(u *url.URL) {
 	if l := len(u.Path); l > 0 {
 		if !strings.HasSuffix(u.Path, "/") {
 			u.Path += "/"
@@ -231,7 +231,7 @@ func addTrailingSlash(u *url.URL) {
 	}
 }
 
-func removeDotSegments(u *url.URL) {
+func RemoveDotSegments(u *url.URL) {
 	if len(u.Path) > 0 {
 		var dotFree []string
 		var lastIsDot bool
@@ -259,41 +259,41 @@ func removeDotSegments(u *url.URL) {
 	}
 }
 
-func removeDirectoryIndex(u *url.URL) {
+func RemoveDirectoryIndex(u *url.URL) {
 	if len(u.Path) > 0 {
 		u.Path = rxDirIndex.ReplaceAllString(u.Path, "$1")
 	}
 }
 
-func removeFragment(u *url.URL) {
+func RemoveFragment(u *url.URL) {
 	u.Fragment = ""
 }
 
-func forceHTTP(u *url.URL) {
+func ForceHTTP(u *url.URL) {
 	if strings.ToLower(u.Scheme) == "https" {
 		u.Scheme = "http"
 	}
 }
 
-func removeDuplicateSlashes(u *url.URL) {
+func RemoveDuplicateSlashes(u *url.URL) {
 	if len(u.Path) > 0 {
 		u.Path = rxDupSlashes.ReplaceAllString(u.Path, "/")
 	}
 }
 
-func removeWWW(u *url.URL) {
+func RemoveWWW(u *url.URL) {
 	if len(u.Host) > 0 && strings.HasPrefix(strings.ToLower(u.Host), "www.") {
 		u.Host = u.Host[4:]
 	}
 }
 
-func addWWW(u *url.URL) {
+func AddWWW(u *url.URL) {
 	if len(u.Host) > 0 && !strings.HasPrefix(strings.ToLower(u.Host), "www.") {
 		u.Host = "www." + u.Host
 	}
 }
 
-func sortQuery(u *url.URL) {
+func SortQuery(u *url.URL) {
 	q := u.Query()
 
 	if len(q) > 0 {
@@ -320,7 +320,7 @@ func sortQuery(u *url.URL) {
 	}
 }
 
-func decodeDWORDHost(u *url.URL) {
+func DecodeDWORDHost(u *url.URL) {
 	if len(u.Host) > 0 {
 		if matches := rxDWORDHost.FindStringSubmatch(u.Host); len(matches) > 2 {
 			var parts [4]int64
@@ -334,7 +334,7 @@ func decodeDWORDHost(u *url.URL) {
 	}
 }
 
-func decodeOctalHost(u *url.URL) {
+func DecodeOctalHost(u *url.URL) {
 	if len(u.Host) > 0 {
 		if matches := rxOctalHost.FindStringSubmatch(u.Host); len(matches) > 5 {
 			var parts [4]int64
@@ -347,7 +347,7 @@ func decodeOctalHost(u *url.URL) {
 	}
 }
 
-func decodeHexHost(u *url.URL) {
+func DecodeHexHost(u *url.URL) {
 	if len(u.Host) > 0 {
 		if matches := rxHexHost.FindStringSubmatch(u.Host); len(matches) > 2 {
 			// Conversion is safe because of regex validation
@@ -355,12 +355,12 @@ func decodeHexHost(u *url.URL) {
 			// Set host as DWORD (base 10) encoded host
 			u.Host = fmt.Sprintf("%d%s", parsed, matches[2])
 			// The rest is the same as decoding a DWORD host
-			decodeDWORDHost(u)
+			DecodeDWORDHost(u)
 		}
 	}
 }
 
-func removeUnncessaryHostDots(u *url.URL) {
+func RemoveUnncessaryHostDots(u *url.URL) {
 	if len(u.Host) > 0 {
 		if matches := rxHostDots.FindStringSubmatch(u.Host); len(matches) > 1 {
 			// Trim the leading and trailing dots
@@ -372,7 +372,7 @@ func removeUnncessaryHostDots(u *url.URL) {
 	}
 }
 
-func removeEmptyPortSeparator(u *url.URL) {
+func RemoveEmptyPortSeparator(u *url.URL) {
 	if len(u.Host) > 0 {
 		u.Host = rxEmptyPort.ReplaceAllString(u.Host, "")
 	}
