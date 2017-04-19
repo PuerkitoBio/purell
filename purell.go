@@ -55,6 +55,8 @@ const (
 	FlagRemoveUnnecessaryHostDots // http://.host../path -> http://host/path
 	FlagRemoveEmptyPortSeparator  // http://host:/path -> http://host/path
 
+	FlagRemoveQuery // http://host/path?c=3&b=2&a=1&b=1 -> http://host/path
+
 	// Convenience set of safe normalizations
 	FlagsSafe NormalizationFlags = FlagLowercaseHost | FlagLowercaseScheme | FlagUppercaseEscapes | FlagDecodeUnnecessaryEscapes | FlagEncodeNecessaryEscapes | FlagRemoveDefaultPort | FlagRemoveEmptyQuerySeparator
 
@@ -105,6 +107,7 @@ var flagsOrder = []NormalizationFlags{
 	FlagRemoveDuplicateSlashes,
 	FlagRemoveWWW,
 	FlagAddWWW,
+	FlagRemoveQuery,
 	FlagSortQuery,
 	FlagDecodeDWORDHost,
 	FlagDecodeOctalHost,
@@ -127,6 +130,7 @@ var flags = map[NormalizationFlags]func(*url.URL){
 	FlagRemoveDuplicateSlashes:    removeDuplicateSlashes,
 	FlagRemoveWWW:                 removeWWW,
 	FlagAddWWW:                    addWWW,
+	FlagRemoveQuery:               removeQuery,
 	FlagSortQuery:                 sortQuery,
 	FlagDecodeDWORDHost:           decodeDWORDHost,
 	FlagDecodeOctalHost:           decodeOctalHost,
@@ -291,6 +295,10 @@ func addWWW(u *url.URL) {
 	if len(u.Host) > 0 && !strings.HasPrefix(strings.ToLower(u.Host), "www.") {
 		u.Host = "www." + u.Host
 	}
+}
+
+func removeQuery(u *url.URL) {
+	u.RawQuery = ""
 }
 
 func sortQuery(u *url.URL) {

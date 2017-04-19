@@ -213,6 +213,13 @@ var (
 			false,
 		},
 		&testCase{
+			"RemoveQuery",
+			"http://root/toto/?b=4&a=1&c=3&b=2&a=5",
+			FlagRemoveQuery,
+			"http://root/toto/",
+			false,
+		},
+		&testCase{
 			"SortQuery",
 			"http://root/toto/?b=4&a=1&c=3&b=2&a=5",
 			FlagSortQuery,

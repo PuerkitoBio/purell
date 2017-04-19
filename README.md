@@ -97,6 +97,8 @@ const (
 	FlagRemoveUnnecessaryHostDots // http://.host../path -> http://host/path
 	FlagRemoveEmptyPortSeparator  // http://host:/path -> http://host/path
 
+	FlagRemoveQuery // http://host/path?c=3&b=2&a=1&b=1 -> http://host/path
+
 	// Convenience set of safe normalizations
 	FlagsSafe NormalizationFlags = FlagLowercaseHost | FlagLowercaseScheme | FlagUppercaseEscapes | FlagDecodeUnnecessaryEscapes | FlagEncodeNecessaryEscapes | FlagRemoveDefaultPort | FlagRemoveEmptyQuerySeparator
 
