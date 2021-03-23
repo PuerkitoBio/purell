@@ -12,6 +12,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"unsafe"
 
 	"github.com/PuerkitoBio/urlesc"
 	"golang.org/x/net/idna"
@@ -286,7 +287,7 @@ func removeDotSegments(u *url.URL) {
 				dst[i], p = p, dst[i]
 			}
 		}
-		u.Path = string(dst)
+		u.Path = *(*string)(unsafe.Pointer(&dst))
 		
 	}
 }
