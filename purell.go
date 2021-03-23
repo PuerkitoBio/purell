@@ -233,29 +233,61 @@ func addTrailingSlash(u *url.URL) {
 
 func removeDotSegments(u *url.URL) {
 	if len(u.Path) > 0 {
-		var dotFree []string
-		var lastIsDot bool
-
-		sections := strings.Split(u.Path, "/")
-		for _, s := range sections {
-			if s == ".." {
-				if len(dotFree) > 0 {
-					dotFree = dotFree[:len(dotFree)-1]
-				}
-			} else if s != "." {
-				dotFree = append(dotFree, s)
+		var (
+			last string
+			elem string
+			i    int
+			dst  []byte
+		)
+		first := true
+		remaining := u.Path
+		for i >= 0 {
+			i = strings.IndexByte(remaining, '/')
+			if i < 0 {
+				last, elem, remaining = remaining, remaining, ""
+			} else {
+				elem, remaining = remaining[:i], remaining[i+1:]
 			}
-			lastIsDot = (s == "." || s == "..")
+			if elem == "." {
+				first = false
+				continue
+			}
+
+			if elem == ".." {
+				index := bytes.LastIndexByte(dst, '/')
+
+				dst = dst[:0]
+				if index == -1 {
+					first = true
+				} else {
+					dst = dst[:index]
+				}
+			} else {
+				if !first {
+					dst = append(dst, '/')
+				}
+				dst = append(dst, elem...)
+				first = false
+			}
 		}
-		// Special case if host does not end with / and new path does not begin with /
-		u.Path = strings.Join(dotFree, "/")
-		if u.Host != "" && !strings.HasSuffix(u.Host, "/") && !strings.HasPrefix(u.Path, "/") {
-			u.Path = "/" + u.Path
+
+		if last == "." || last == ".." {
+			dst = append(dst, '/')
 		}
-		// Special case if the last segment was a dot, make sure the path ends with a slash
-		if lastIsDot && !strings.HasSuffix(u.Path, "/") {
-			u.Path += "/"
+
+		if !(len(dst) > 0 && dst[0] == '/') {
+			if cap(dst) <= len(dst) {
+				dst = append(dst, '/')
+			} else {
+				dst = dst[:len(dst)+1]
+			}
+			p := byte('/')
+			for i := 0; i < len(dst); i += 1 {
+				dst[i], p = p, dst[i]
+			}
 		}
+		u.Path = string(dst)
+		
 	}
 }
 
