@@ -1,7 +1,5 @@
 # Purell
 
-**LOOKING FOR A MAINTAINER**. I don't use purell these days, and as such I don't give it much attention and care. If you use it in your project(s) and would be interested in taking good care of it, please reach out. See https://github.com/PuerkitoBio/purell/issues/33.
-
 Purell is a tiny Go library to normalize URLs. It returns a pure URL. Pure-ell. Sanitizer and all. Yeah, I know...
 
 Based on the [wikipedia paper][wiki] and the [RFC 3986 document][rfc].
