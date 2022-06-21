@@ -1,0 +1,25 @@
+name: CI
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  ci:
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        go: ['1.17.11', '1.18.3']
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ matrix.go }}
+          cache: true
+
+      - name: Test
+        run: go test -v ./...
