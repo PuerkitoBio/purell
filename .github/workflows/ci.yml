@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        go: ['1.17.11', '1.18.3']
+        go: ['1.17.13', '1.18.4', '1.19']
 
     steps:
       - uses: actions/checkout@v3
