@@ -487,6 +487,13 @@ var (
 			false,
 		},
 		{
+			"UnnecessaryHostDots-5",
+			"http://www..example...com/",
+			FlagsSafe | FlagRemoveUnnecessaryHostDots,
+			"http://www.example.com/",
+			false,
+		},
+		{
 			"EmptyPort-1",
 			"http://www.thedraymin.co.uk:/main/?p=308",
 			FlagsSafe | FlagRemoveEmptyPortSeparator,
