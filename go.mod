@@ -1,8 +1,8 @@
 module github.com/PuerkitoBio/purell
 
-go 1.19
+go 1.21
 
 require (
-	golang.org/x/net v0.0.0-20220617184016-355a448f1bc9
-	golang.org/x/text v0.3.7
+	golang.org/x/net v0.17.0
+	golang.org/x/text v0.13.0
 )
