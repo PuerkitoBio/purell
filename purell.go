@@ -227,9 +227,7 @@ func addTrailingSlash(u *url.URL) {
 			u.Path += "/"
 		}
 	} else if l = len(u.Host); l > 0 {
-		if !strings.HasSuffix(u.Host, "/") {
-			u.Host += "/"
-		}
+		u.Path = "/"
 	}
 }
 
