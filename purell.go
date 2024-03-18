@@ -90,8 +90,8 @@ var rxHostInteriorDots = regexp.MustCompile(`\.+`)
 var rxEmptyPort = regexp.MustCompile(`:+$`)
 
 // Map of flags to implementation function.
-// FlagDecodeUnnecessaryEscapes has no action, since it is done automatically
-// by parsing the string as an URL. Same for FlagUppercaseEscapes and FlagRemoveEmptyQuerySeparator.
+// FlagDecodeUnnecessaryEscapes, FlagEncodeNecessaryEscapes, and FlagUppercaseEscapes
+// have no action, since they are done automatically by parsing the string as an URL.
 
 // Since maps have undefined traversing order, make a slice of ordered keys
 var flagsOrder = []NormalizationFlags{
@@ -177,12 +177,14 @@ func NormalizeURLString(u string, f NormalizationFlags) (string, error) {
 // NormalizeURL returns the normalized string.
 // It takes a parsed URL object as input, as well as the normalization flags.
 func NormalizeURL(u *url.URL, f NormalizationFlags) string {
+	u.RawPath = ""
 	for _, k := range flagsOrder {
 		if f&k == k {
 			flags[k](u)
 		}
 	}
-	return escapeURL(u)
+
+	return u.String()
 }
 
 func lowercaseScheme(u *url.URL) {
