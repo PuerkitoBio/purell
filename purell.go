@@ -105,6 +105,7 @@ var flagsOrder = []NormalizationFlags{
 	FlagRemoveDuplicateSlashes,
 	FlagRemoveWWW,
 	FlagAddWWW,
+	FlagRemoveEmptyQuerySeparator,
 	FlagSortQuery,
 	FlagDecodeDWORDHost,
 	FlagDecodeOctalHost,
@@ -127,6 +128,7 @@ var flags = map[NormalizationFlags]func(*url.URL){
 	FlagRemoveDuplicateSlashes:    removeDuplicateSlashes,
 	FlagRemoveWWW:                 removeWWW,
 	FlagAddWWW:                    addWWW,
+	FlagRemoveEmptyQuerySeparator: removeEmptyQuerySeparator,
 	FlagSortQuery:                 sortQuery,
 	FlagDecodeDWORDHost:           decodeDWORDHost,
 	FlagDecodeOctalHost:           decodeOctalHost,
@@ -291,6 +293,10 @@ func addWWW(u *url.URL) {
 	if len(u.Host) > 0 && !strings.HasPrefix(strings.ToLower(u.Host), "www.") {
 		u.Host = "www." + u.Host
 	}
+}
+
+func removeEmptyQuerySeparator(u *url.URL) {
+	u.ForceQuery = false
 }
 
 func sortQuery(u *url.URL) {
