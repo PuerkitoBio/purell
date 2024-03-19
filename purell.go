@@ -90,8 +90,8 @@ var rxHostInteriorDots = regexp.MustCompile(`\.+`)
 var rxEmptyPort = regexp.MustCompile(`:+$`)
 
 // Map of flags to implementation function.
-// FlagDecodeUnnecessaryEscapes has no action, since it is done automatically
-// by parsing the string as an URL. Same for FlagUppercaseEscapes and FlagRemoveEmptyQuerySeparator.
+// FlagDecodeUnnecessaryEscapes, FlagEncodeNecessaryEscapes, and FlagUppercaseEscapes
+// have no action, since they are done automatically by parsing the string as an URL.
 
 // Since maps have undefined traversing order, make a slice of ordered keys
 var flagsOrder = []NormalizationFlags{
@@ -105,6 +105,7 @@ var flagsOrder = []NormalizationFlags{
 	FlagRemoveDuplicateSlashes,
 	FlagRemoveWWW,
 	FlagAddWWW,
+	FlagRemoveEmptyQuerySeparator,
 	FlagSortQuery,
 	FlagDecodeDWORDHost,
 	FlagDecodeOctalHost,
@@ -127,6 +128,7 @@ var flags = map[NormalizationFlags]func(*url.URL){
 	FlagRemoveDuplicateSlashes:    removeDuplicateSlashes,
 	FlagRemoveWWW:                 removeWWW,
 	FlagAddWWW:                    addWWW,
+	FlagRemoveEmptyQuerySeparator: removeEmptyQuerySeparator,
 	FlagSortQuery:                 sortQuery,
 	FlagDecodeDWORDHost:           decodeDWORDHost,
 	FlagDecodeOctalHost:           decodeOctalHost,
@@ -175,12 +177,14 @@ func NormalizeURLString(u string, f NormalizationFlags) (string, error) {
 // NormalizeURL returns the normalized string.
 // It takes a parsed URL object as input, as well as the normalization flags.
 func NormalizeURL(u *url.URL, f NormalizationFlags) string {
+	u.RawPath = ""
 	for _, k := range flagsOrder {
 		if f&k == k {
 			flags[k](u)
 		}
 	}
-	return escapeURL(u)
+
+	return u.String()
 }
 
 func lowercaseScheme(u *url.URL) {
@@ -225,9 +229,7 @@ func addTrailingSlash(u *url.URL) {
 			u.Path += "/"
 		}
 	} else if l = len(u.Host); l > 0 {
-		if !strings.HasSuffix(u.Host, "/") {
-			u.Host += "/"
-		}
+		u.Path = "/"
 	}
 }
 
@@ -291,6 +293,10 @@ func addWWW(u *url.URL) {
 	if len(u.Host) > 0 && !strings.HasPrefix(strings.ToLower(u.Host), "www.") {
 		u.Host = "www." + u.Host
 	}
+}
+
+func removeEmptyQuerySeparator(u *url.URL) {
+	u.ForceQuery = false
 }
 
 func sortQuery(u *url.URL) {
