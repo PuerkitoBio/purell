@@ -12,6 +12,7 @@ Based on the [wikipedia paper][wiki] and the [RFC 3986 document][rfc].
 
 ## Changelog
 
+*    **v1.2.0** : Switch to `net/url` url escaping.
 *    **v1.1.1** : Fix failing test due to Go1.12 changes (thanks to @ianlancetaylor).
 *    **2016-11-14 (v1.1.0)** : IDN: Conform to RFC 5895: Fold character width (thanks to @beeker1121).
 *    **2016-07-27 (v1.0.0)** : Normalize IDN to ASCII (thanks to @zenovich).
