@@ -755,6 +755,42 @@ func runCase(tc *testCase, t *testing.T) {
 	}
 }
 
+// Normalizing an already-normalized URL must be a no-op. These cases previously
+// needed a second pass to reach res.
+var idempotenceCases = [...]*testCase{
+	{"IdemTrailingSlashDouble", "http://host//", FlagRemoveTrailingSlash, "http://host", false},
+	{"IdemTrailingSlashTriple", "http://host///", FlagRemoveTrailingSlash, "http://host", false},
+	{"IdemTrailingSlashMid", "http://host/a//", FlagRemoveTrailingSlash, "http://host/a", false},
+	{"IdemTrailingSlashRoot", "http://host/", FlagRemoveTrailingSlash, "http://host", false},
+	{"IdemTrailingSlashEncoded", "http://host/%2f", FlagRemoveTrailingSlash, "http://host", false},
+	{"IdemTrailingSlashInterior", "HTTP://www.SRC.ca:80//toto//", FlagRemoveTrailingSlash, "http://www.SRC.ca:80//toto", false},
+	{"IdemUsuallySafeDouble", "http://host//", FlagsUsuallySafeGreedy, "http://host", false},
+	{"IdemUsuallySafeDotMulti", "http://host/a/./b//", FlagsUsuallySafeGreedy, "http://host/a/b", false},
+	{"IdemUnsafeDirIndexSlash", "http://host/index.html/", FlagsUnsafeGreedy, "http://host", false},
+	{"IdemUnsafeDirIndexEncoded", "http://host/a/index.html%2f", FlagsUnsafeGreedy, "http://host/a", false},
+	{"IdemUnsafeDirIndexDotDot", "http://host/index.html//..", FlagsUnsafeGreedy, "http://host", false},
+}
+
+func TestNormalizeIsIdempotent(t *testing.T) {
+	for _, tc := range idempotenceCases {
+		s, err := NormalizeURLString(tc.src, tc.flgs)
+		if err != nil {
+			t.Errorf("%s - FAIL : %s", tc.nm, err)
+			continue
+		}
+		if s != tc.res {
+			t.Errorf("%s - FAIL expected '%s', got '%s'", tc.nm, tc.res, s)
+			continue
+		}
+		s2, err := NormalizeURLString(s, tc.flgs)
+		if err != nil {
+			t.Errorf("%s - FAIL re-normalizing '%s' : %s", tc.nm, s, err)
+		} else if s2 != s {
+			t.Errorf("%s - FAIL not idempotent: once '%s', twice '%s'", tc.nm, s, s2)
+		}
+	}
+}
+
 func TestDecodeUnnecessaryEscapesAll(t *testing.T) {
 	var url = "http://host/"
 
