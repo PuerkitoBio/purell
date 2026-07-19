@@ -190,9 +190,31 @@ func NormalizeURLString(u string, f NormalizationFlags) (string, error) {
 	return NormalizeURL(parsed, f), nil
 }
 
+// maxNormalizeIterations caps the fixed-point loop; inputs converge in a couple
+// of passes, so this only guards against a pathological input.
+const maxNormalizeIterations = 100
+
 // NormalizeURL returns the normalized string.
 // It takes a parsed URL object as input, as well as the normalization flags.
 func NormalizeURL(u *url.URL, f NormalizationFlags) string {
+	// Iterate to a fixed point so Normalize is idempotent: one pass can leave a
+	// trailing slash (or a directory index it later exposes) behind.
+	result := normalizeURLOnce(u, f)
+	for i := 0; i < maxNormalizeIterations; i++ {
+		parsed, err := url.Parse(result)
+		if err != nil {
+			break
+		}
+		next := normalizeURLOnce(parsed, f)
+		if next == result {
+			break
+		}
+		result = next
+	}
+	return result
+}
+
+func normalizeURLOnce(u *url.URL, f NormalizationFlags) string {
 	for _, k := range flagsOrder {
 		if f&k == k {
 			flags[k](u)
@@ -228,14 +250,12 @@ func removeDefaultPort(u *url.URL) {
 }
 
 func removeTrailingSlash(u *url.URL) {
-	if l := len(u.Path); l > 0 {
-		if strings.HasSuffix(u.Path, "/") {
-			u.Path = u.Path[:l-1]
-		}
-	} else if l = len(u.Host); l > 0 {
-		if strings.HasSuffix(u.Host, "/") {
-			u.Host = u.Host[:l-1]
-		}
+	// Strip every trailing slash (a root "/" still collapses to ""), so a
+	// single pass is already a fixed point.
+	if len(u.Path) > 0 {
+		u.Path = strings.TrimRight(u.Path, "/")
+	} else if len(u.Host) > 0 {
+		u.Host = strings.TrimRight(u.Host, "/")
 	}
 }
 
