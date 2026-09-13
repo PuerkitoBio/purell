@@ -450,11 +450,22 @@ func normalizedString(u *url.URL) string {
 				s = s[2:]
 			}
 		}
-	} else if u.User == nil {
+	} else if u.User == nil && schemeUsesAuthority(u.Scheme) {
 		prefix := u.Scheme + ":"
 		if strings.HasPrefix(s, prefix) && !strings.HasPrefix(s, prefix+"//") {
 			s = prefix + "//" + s[len(prefix):]
 		}
 	}
 	return s
+}
+
+// schemeUsesAuthority reports whether scheme is hierarchical with a host.
+// mailto, tel, and similar schemes must not gain a dummy "//".
+func schemeUsesAuthority(scheme string) bool {
+	switch strings.ToLower(scheme) {
+	case "http", "https", "ftp", "ftps", "ws", "wss", "file", "gopher":
+		return true
+	default:
+		return false
+	}
 }
